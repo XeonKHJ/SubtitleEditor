@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace SubtitleEditor.Subtitle
+namespace SubtitleEditor.Subtitles
 {
     public class Dialogue
     {

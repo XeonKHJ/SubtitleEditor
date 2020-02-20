@@ -5,14 +5,29 @@
     xmlns:local="using:SubtitleEditor.UWP"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:controls="using:Microsoft.Toolkit.Uwp.UI.Controls"
     mc:Ignorable="d"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
 
-    <Grid>
+    <StackPanel>
         <MenuBar VerticalAlignment="Top">
-            <MenuBarItem Title="文件"></MenuBarItem>
+            <MenuBarItem Title="文件">
+                <MenuFlyoutItem x:Name="OpenButton" Text="打开…" Click="OpenButton_ClickAsync">
+                    <MenuFlyoutItem.KeyboardAccelerators>
+                        <KeyboardAccelerator Modifiers="Control" Key="O"/>
+                    </MenuFlyoutItem.KeyboardAccelerators>
+                </MenuFlyoutItem>
+            </MenuBarItem>
             <MenuBarItem Title="编辑"></MenuBarItem>
             <MenuBarItem Title="关于"></MenuBarItem>
         </MenuBar>
-    </Grid>
+        <controls:DataGrid x:Name="DialoguesGrid" HorizontalAlignment="Stretch">
+            <controls:DataGrid.Columns>
+                <controls:DataGridTextColumn Header="序号" ></controls:DataGridTextColumn>
+                <controls:DataGridTextColumn Header="开始时间" ></controls:DataGridTextColumn>
+                <controls:DataGridTextColumn Header="结束时间"></controls:DataGridTextColumn>
+                <controls:DataGridTextColumn x:Name="DialoguesColumn" Header="字幕" Width="*"></controls:DataGridTextColumn>
+            </controls:DataGrid.Columns>
+        </controls:DataGrid>
+    </StackPanel>
 </Page>

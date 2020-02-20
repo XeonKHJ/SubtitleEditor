@@ -41,14 +41,20 @@ namespace SubtitleEditor.Subtitles
                                     );
 
             var matches = srtRegex.Matches(subString);
+
+            Subtitle subtitle = new Subtitle();
             foreach(Match match in matches)
             {
                 var groups = match.Groups;
+                var no = int.Parse(groups["number"].Value);
                 var beginTime = groups["beginTime"].Value;
                 var endTime = groups["endTime"].Value;
+                var line = groups["dialogue"].Value;
+                Dialogue dialogue = new Dialogue(no, DateTime.ParseExact(beginTime, "HH:mm:ss,fff", null), DateTime.ParseExact(endTime, "HH:mm:ss,fff", null), line, match.Value);
+                subtitle.Dialogues.Add(dialogue);
             }
 
-            return new Subtitle();
+            return subtitle;
         }
         public void SaveToFile(Subtitle subtitle, string filePath)
         {
