@@ -26,26 +26,30 @@ namespace SubtitleEditor.Subtitle
             Regex newLineRegex = new Regex(@"(\n|\r)+");
             Regex dialogueLineRegex = new Regex(@"((?<dialogue>.*?)(?=(((\s*)(\r|\n)+\d+\s*(\r|\n)+((\d{2}):(\d{2}):(\d{2}),(\d{3}))(\s*)(-->)(\s*)((\d{2}):(\d{2}):(\d{2}),(\d{3})))|(\s*(\r|\n)*)\z)))");
             Regex anyEmptyChar = new Regex(@"(\s)*");
-            var fullRegex = new Regex(numberLineRegex.ToString() //出现序号
-                                    + anyEmptyChar.ToString() //可以有任意空格
-                                    + newLineRegex.ToString() //换行
-                                    + beginTimeRegex.ToString() //开始时间
-                                    + anyEmptyChar.ToString() //任意空格
-                                    + timeArrowRegex.ToString() //时间箭头
-                                    + anyEmptyChar.ToString() //任意空格
-                                    + endTimeRegex.ToString() //结束时间
-                                    + anyEmptyChar.ToString() //任意空格
-                                    + newLineRegex.ToString() //换行
-                                    + dialogueLineRegex.ToString() //台词
+            var srtRegex = new Regex(numberLineRegex.ToString()     //出现序号
+                                    + anyEmptyChar.ToString()       //可以有任意空格
+                                    + newLineRegex.ToString()       //换行
+                                    + beginTimeRegex.ToString()     //开始时间
+                                    + anyEmptyChar.ToString()       //任意空格
+                                    + timeArrowRegex.ToString()     //时间箭头
+                                    + anyEmptyChar.ToString()       //任意空格
+                                    + endTimeRegex.ToString()       //结束时间
+                                    + anyEmptyChar.ToString()       //任意空格
+                                    + newLineRegex.ToString()       //换行
+                                    + dialogueLineRegex.ToString()  //台词
                                     , RegexOptions.Singleline
                                     );
 
-
-            Subtitle subtitle = new Subtitle();
+            var matches = srtRegex.Matches(subString);
+            foreach(Match match in matches)
+            {
+                var groups = match.Groups;
+                var beginTime = groups["beginTime"].Value;
+                var endTime = groups["endTime"].Value;
+            }
 
             return new Subtitle();
         }
-
         public void SaveToFile(Subtitle subtitle, string filePath)
         {
             throw new NotImplementedException();

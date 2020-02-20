@@ -10,7 +10,6 @@ namespace SubtitleEditor.Subtitle
         Subtitle LoadFromFile(string filePath);
 
         Subtitle LoadFromString(string subString);
-
         string SaveToString(Subtitle subtitle);
 
         void SaveToFile(Subtitle subtitle, string filePath);

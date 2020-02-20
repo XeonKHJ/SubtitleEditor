@@ -9,6 +9,10 @@
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
 
     <Grid>
-
+        <MenuBar VerticalAlignment="Top">
+            <MenuBarItem Title="文件"></MenuBarItem>
+            <MenuBarItem Title="编辑"></MenuBarItem>
+            <MenuBarItem Title="关于"></MenuBarItem>
+        </MenuBar>
     </Grid>
 </Page>
