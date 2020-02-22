@@ -8,8 +8,15 @@ namespace SubtitleEditor.UWP
 {
     class SubtitleViewModel
     {
-        public string BeginTime { set; get; }
-        public string ReturnTime { set; get; }
+        public DateTime BeginTime { set; get; }
+        public DateTime EndTime { set; get; }
         public string Dialog { set; get; }
+        public TimeSpan Span
+        {
+            get
+            {
+                return EndTime - BeginTime;
+            }
+        }
     }
 }

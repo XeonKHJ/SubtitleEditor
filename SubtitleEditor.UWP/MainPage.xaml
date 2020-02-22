@@ -9,25 +9,51 @@
     mc:Ignorable="d"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
 
-    <StackPanel>
-        <MenuBar VerticalAlignment="Top">
+    <Page.Resources>
+        <local:DialogueViewModelFormatter x:Key="StringFormatterValueConverter"/>
+    </Page.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="auto"></RowDefinition>
+            <RowDefinition Height="*"></RowDefinition>
+            <RowDefinition Height="8*"></RowDefinition>
+        </Grid.RowDefinitions>
+        <MenuBar VerticalAlignment="Top" Grid.Row="0">
             <MenuBarItem Title="文件">
                 <MenuFlyoutItem x:Name="OpenButton" Text="打开…" Click="OpenButton_ClickAsync">
                     <MenuFlyoutItem.KeyboardAccelerators>
                         <KeyboardAccelerator Modifiers="Control" Key="O"/>
                     </MenuFlyoutItem.KeyboardAccelerators>
                 </MenuFlyoutItem>
+                <MenuFlyoutItem x:Name="UpdateButton" Text="打开最近文件…" Click="UpdateButton_Click">
+                </MenuFlyoutItem>
+                <MenuFlyoutSubItem x:Name="OpenRecentFileItem" Text="打开最近文件"></MenuFlyoutSubItem>
             </MenuBarItem>
             <MenuBarItem Title="编辑"></MenuBarItem>
             <MenuBarItem Title="关于"></MenuBarItem>
         </MenuBar>
-        <controls:DataGrid x:Name="DialoguesGrid" HorizontalAlignment="Stretch">
+        <TextBox Grid.Row="1" x:Name="DialogueBox" AcceptsReturn="True"></TextBox>
+        <controls:DataGrid x:Name="DialoguesGrid" HorizontalAlignment="Stretch" AutoGenerateColumns="False"
+                           Grid.Row="2"
+                           ItemsSource="{x:Bind DialoguesViewModel}"
+                           VerticalScrollBarVisibility="Visible"
+                           HorizontalScrollBarVisibility="Visible"
+                           SelectionChanged="DialoguesGrid_SelectionChanged">
             <controls:DataGrid.Columns>
-                <controls:DataGridTextColumn Header="序号" ></controls:DataGridTextColumn>
-                <controls:DataGridTextColumn Header="开始时间" ></controls:DataGridTextColumn>
-                <controls:DataGridTextColumn Header="结束时间"></controls:DataGridTextColumn>
-                <controls:DataGridTextColumn x:Name="DialoguesColumn" Header="字幕" Width="*"></controls:DataGridTextColumn>
+                <controls:DataGridTextColumn Header="序号" Binding="{Binding No}" x:DefaultBindMode="TwoWay"></controls:DataGridTextColumn>
+                <controls:DataGridTextColumn Header="开始时间" x:DefaultBindMode="TwoWay" Binding="{Binding From, Converter={StaticResource StringFormatterValueConverter}}"></controls:DataGridTextColumn>
+                <controls:DataGridTextColumn Header="结束时间" Binding="{Binding To, Converter={StaticResource StringFormatterValueConverter}}"></controls:DataGridTextColumn>
+                <controls:DataGridTextColumn Header="持续时间" Binding="{Binding Span, Converter={StaticResource StringFormatterValueConverter}}"></controls:DataGridTextColumn>
+                <controls:DataGridTextColumn x:Name="DialoguesColumn" Header="字幕" Width="*" 
+                                             Binding="{Binding Line}">
+                    <controls:DataGridTextColumn.EditingElementStyle>
+                        <Style TargetType="TextBox">
+                            <Setter Property="AcceptsReturn" Value="true"/>
+                        </Style>
+                    </controls:DataGridTextColumn.EditingElementStyle>
+                </controls:DataGridTextColumn>
             </controls:DataGrid.Columns>
         </controls:DataGrid>
-    </StackPanel>
+    </Grid>
 </Page>
