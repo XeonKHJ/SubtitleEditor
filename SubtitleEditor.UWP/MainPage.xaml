@@ -16,7 +16,7 @@
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="auto"></RowDefinition>
-            <RowDefinition Height="*"></RowDefinition>
+            <RowDefinition Height="auto"></RowDefinition>
             <RowDefinition Height="8*"></RowDefinition>
         </Grid.RowDefinitions>
         <MenuBar VerticalAlignment="Top" Grid.Row="0">
@@ -30,10 +30,19 @@
                 </MenuFlyoutItem>
                 <MenuFlyoutSubItem x:Name="OpenRecentFileItem" Text="打开最近文件"></MenuFlyoutSubItem>
             </MenuBarItem>
-            <MenuBarItem Title="编辑"></MenuBarItem>
+            <MenuBarItem Title="编辑">
+                <MenuFlyoutItem x:Name="OpenVideoButton" Text="打开视频…" Click="OpenVideoButton_Click"></MenuFlyoutItem>
+            </MenuBarItem>
             <MenuBarItem Title="关于"></MenuBarItem>
         </MenuBar>
-        <TextBox Grid.Row="1" x:Name="DialogueBox" AcceptsReturn="True"></TextBox>
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="auto"></ColumnDefinition>
+                <ColumnDefinition Width="*"></ColumnDefinition>
+            </Grid.ColumnDefinitions>
+            <MediaPlayerElement x:Name="VideoElement" Grid.Column="0" Visibility="Collapsed"></MediaPlayerElement>
+            <TextBox Grid.Column="1" x:Name="DialogueBox" AcceptsReturn="True"></TextBox>
+        </Grid>
         <controls:DataGrid x:Name="DialoguesGrid" HorizontalAlignment="Stretch" AutoGenerateColumns="False"
                            Grid.Row="2"
                            ItemsSource="{x:Bind DialoguesViewModel}"

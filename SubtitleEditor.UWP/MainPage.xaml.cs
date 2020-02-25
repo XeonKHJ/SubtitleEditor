@@ -19,6 +19,8 @@ using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Navigation;
 using SubtitleEditor.Subtitles;
 using SubtitleEditor.UWP.ViewModels;
+using Windows.Media.Core;
+using Windows.Media.Playback;
 
 // https://go.microsoft.com/fwlink/?LinkId=402352&clcid=0x804 上介绍了“空白页”项模板
 
@@ -50,6 +52,28 @@ namespace SubtitleEditor.UWP
             OpenSubFile(file);
         }
 
+        private MediaPlayer mediaPlayer;
+        
+        private void OpenVideoFile(StorageFile file)
+        {
+            if(file != null)
+            {
+                //关掉前一个视频
+                if(mediaPlayer != null)
+                {
+                    mediaPlayer.Dispose();
+                }
+
+                var path = file.Path;
+                mediaPlayer = new MediaPlayer
+                {
+                    Source = MediaSource.CreateFromStorageFile(file)
+                };
+                VideoElement.SetMediaPlayer(mediaPlayer);
+                mediaPlayer.Play();
+            }
+        }
+
         private async void OpenSubFile(StorageFile file)
         {
             if (file != null)
@@ -75,6 +99,20 @@ namespace SubtitleEditor.UWP
             {
                 DialogueBox.Text = ((DialogueViewModel)e.AddedItems.First()).Line;
             }
+        }
+
+        private async void OpenVideoButton_Click(object sender, RoutedEventArgs e)
+        {
+            var picker = new Windows.Storage.Pickers.FileOpenPicker
+            {
+                ViewMode = Windows.Storage.Pickers.PickerViewMode.Thumbnail
+            };
+            picker.FileTypeFilter.Add(".mkv");
+            picker.FileTypeFilter.Add(".mp4");
+
+            StorageFile file = await picker.PickSingleFileAsync();
+
+            OpenVideoFile(file);
         }
     }
 }
