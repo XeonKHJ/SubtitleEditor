@@ -34,9 +34,9 @@ namespace SubtitleEditor.UWP
         public MainPage()
         {
             this.InitializeComponent();
+            DeadLoop();
         }
 
-        public List<string> Dialogues = new List<string> { "sdfsdf", "sdfsdf" };
         public Subtitle Subtitle;
         public DialoguesViewModel DialoguesViewModel = new DialoguesViewModel();
         private async void OpenButton_ClickAsync(object sender, RoutedEventArgs e)
@@ -59,10 +59,7 @@ namespace SubtitleEditor.UWP
             if(file != null)
             {
                 //关掉前一个视频
-                if(mediaPlayer != null)
-                {
-                    mediaPlayer.Dispose();
-                }
+                CloseVideo();
 
                 var path = file.Path;
                 mediaPlayer = new MediaPlayer
@@ -70,7 +67,20 @@ namespace SubtitleEditor.UWP
                     Source = MediaSource.CreateFromStorageFile(file)
                 };
                 VideoElement.SetMediaPlayer(mediaPlayer);
-                mediaPlayer.Play();
+                VideoElement.Visibility = Visibility.Visible;
+                VideoElementAndDialogueBoxSplitter.Visibility = Visibility.Visible;
+                VideoTransportControls.Visibility = Visibility.Visible;
+                //VideoElement.TransportControls = VideoTransportControls;
+            }
+        }
+
+        private void CloseVideo()
+        {
+            if (mediaPlayer != null)
+            {
+                mediaPlayer.Dispose();
+                VideoElement.Visibility = Visibility.Collapsed;
+                VideoElementAndDialogueBoxSplitter.Visibility = Visibility.Collapsed;
             }
         }
 
@@ -113,6 +123,19 @@ namespace SubtitleEditor.UWP
             StorageFile file = await picker.PickSingleFileAsync();
 
             OpenVideoFile(file);
+        }
+
+        private void CloseVideoButton_Click(object sender, RoutedEventArgs e)
+        {
+            CloseVideo();
+        }
+
+        private async void DeadLoop()
+        {
+            await Task.Run(()=>
+            { 
+                while (true) ; 
+            }) ;
         }
     }
 }
