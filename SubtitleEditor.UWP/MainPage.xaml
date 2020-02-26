@@ -40,14 +40,14 @@
             <MenuBarItem Title="关于"></MenuBarItem>
         </MenuBar>
         <RelativePanel Grid.Row="1">
-            <Grid x:Name="VideoGrid" RelativePanel.Above="StandaloneVideoTransportControls" RelativePanel.AlignRightWithPanel="True" RelativePanel.AlignLeftWithPanel="True" RelativePanel.AlignTopWithPanel="True">
+            <Grid x:Name="VideoGrid" RelativePanel.Above="VideoStandAloneControls" RelativePanel.AlignRightWithPanel="True" RelativePanel.AlignLeftWithPanel="True" RelativePanel.AlignTopWithPanel="True">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="auto"></ColumnDefinition>
                     <ColumnDefinition Width="auto"></ColumnDefinition>
                     <ColumnDefinition Width="*"></ColumnDefinition>
                 </Grid.ColumnDefinitions>
                 <MediaPlayerElement x:Name="VideoElement" Grid.Column="0" 
-                                    Visibility="Visible" AreTransportControlsEnabled="True">
+                                    Visibility="Visible" AreTransportControlsEnabled="True" AutoPlay="False">
                     <MediaPlayerElement.TransportControls>
                         <MediaTransportControls x:Name="VideoTransportControls" Visibility="Collapsed"></MediaTransportControls>
                     </MediaPlayerElement.TransportControls>
@@ -55,9 +55,9 @@
                 <controls:GridSplitter x:Name="VideoElementAndDialogueBoxSplitter" Grid.Column="1" Width="5" Visibility="Collapsed" ></controls:GridSplitter>
                 <TextBox Grid.Column="2" x:Name="DialogueBox" AcceptsReturn="True"></TextBox>
             </Grid>
-            <MediaTransportControls x:Name="StandaloneVideoTransportControls"
-                RelativePanel.AlignBottomWithPanel="True" RelativePanel.AlignLeftWithPanel="True" RelativePanel.AlignRightWithPanel="True" 
-                                    IsCompact="False" Visibility="Visible" Tag="ksdjfi"></MediaTransportControls>
+            <local2:StandAloneMediaTransportControls x:Name="VideoStandAloneControls"
+                RelativePanel.AlignBottomWithPanel="True" RelativePanel.AlignLeftWithPanel="True" RelativePanel.AlignRightWithPanel="True"
+                                                     Margin="20, 0"></local2:StandAloneMediaTransportControls>
         </RelativePanel>
         <controls:GridSplitter Grid.Row="2" Height="5"></controls:GridSplitter>
         <controls:DataGrid x:Name="DialoguesGrid" HorizontalAlignment="Stretch" AutoGenerateColumns="False"

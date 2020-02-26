@@ -1,17 +1,25 @@
 <ResourceDictionary
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:local="using:SubtitleEditor.UWP"
+    xmlns:local="using:SubtitleEditor.UWP.Controls"
     xmlns:local2="using:SubtitleEditor.UWP.Controls">
 
+    <local2:SliderThumTooltipFormatter x:Key="SliderThumTooltipValueConverter"></local2:SliderThumTooltipFormatter>
     <Style TargetType="local2:StandAloneMediaTransportControls">
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="local2:StandAloneMediaTransportControls">
                     <Grid>
-                        <Canvas x:Name="ItemCanvas">
-                            <Ellipse Height="100" Width="100" Fill="Blue" VerticalAlignment="Center"></Ellipse>
-                        </Canvas>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="auto"></ColumnDefinition>
+                            <ColumnDefinition Width="*"></ColumnDefinition>
+                            <ColumnDefinition Width="auto"></ColumnDefinition>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock x:Name="StartPositionBlock" Grid.Column="0" Text="0" VerticalAlignment="Center" Margin="0, 0, 10, 0"></TextBlock>
+                        <Slider Grid.Column="1" x:Name="MediaSlider" VerticalAlignment="Stretch" Margin="0, 0, 10, 0">
+                            <!--ThumbToolTipValueConverter="{StaticResource SliderThumTooltipValueConverter}"-->
+                        </Slider>
+                        <TextBlock x:Name="EndPositionBlock" Grid.Column="2" VerticalAlignment="Center" Text="0"></TextBlock>
                     </Grid>
                 </ControlTemplate>
             </Setter.Value>

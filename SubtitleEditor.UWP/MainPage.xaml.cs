@@ -34,7 +34,6 @@ namespace SubtitleEditor.UWP
         public MainPage()
         {
             this.InitializeComponent();
-            DeadLoop();
         }
 
         public Subtitle Subtitle;
@@ -68,6 +67,7 @@ namespace SubtitleEditor.UWP
                 };
                 VideoElement.SetMediaPlayer(mediaPlayer);
                 VideoElement.Visibility = Visibility.Visible;
+                VideoStandAloneControls.MediaPlayer = mediaPlayer;
                 VideoElementAndDialogueBoxSplitter.Visibility = Visibility.Visible;
                 VideoTransportControls.Visibility = Visibility.Visible;
                 //VideoElement.TransportControls = VideoTransportControls;
