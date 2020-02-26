@@ -7,6 +7,7 @@ using Windows.ApplicationModel;
 using Windows.ApplicationModel.Activation;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
+using Windows.UI.Core;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Controls.Primitives;
@@ -96,5 +97,11 @@ namespace SubtitleEditor.UWP
             //TODO: 保存应用程序状态并停止任何后台活动
             deferral.Complete();
         }
+
+        public static async void RunOnUIThread(Action action, CoreDispatcherPriority Priority = CoreDispatcherPriority.Normal) 
+        { 
+            await Windows.ApplicationModel.Core.CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(Priority, () => { action(); }); 
+        }
+
     }
 }

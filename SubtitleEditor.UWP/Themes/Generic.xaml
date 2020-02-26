@@ -4,7 +4,7 @@
     xmlns:local="using:SubtitleEditor.UWP.Controls"
     xmlns:local2="using:SubtitleEditor.UWP.Controls">
 
-    <local2:SliderThumTooltipFormatter x:Key="SliderThumTooltipValueConverter"></local2:SliderThumTooltipFormatter>
+    <!--<local2:SliderThumTooltipFormatter x:Key="SliderThumTooltipValueConverter"></local2:SliderThumTooltipFormatter>-->
     <Style TargetType="local2:StandAloneMediaTransportControls">
         <Setter Property="Template">
             <Setter.Value>

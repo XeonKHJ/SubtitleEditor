@@ -120,6 +120,7 @@
       <DependentUpon>App.xaml</DependentUpon>
     </Compile>
     <Compile Include="Controls\StandAloneMediaTransportControls.cs" />
+    <Compile Include="Controls\ViewModels\MediaPlayerViewModel.cs" />
     <Compile Include="DialogueViewModelFormatter.cs" />
     <Compile Include="TestPage.xaml.cs">
       <DependentUpon>TestPage.xaml</DependentUpon>
@@ -182,6 +183,7 @@
       <Name>SubtitleEditor.Subtitles</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup />
   <PropertyGroup Condition=" '$(VisualStudioVersion)' == '' or '$(VisualStudioVersion)' &lt; '14.0' ">
     <VisualStudioVersion>14.0</VisualStudioVersion>
   </PropertyGroup>
