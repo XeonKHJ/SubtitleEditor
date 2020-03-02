@@ -21,6 +21,8 @@ using SubtitleEditor.Subtitles;
 using SubtitleEditor.UWP.ViewModels;
 using Windows.Media.Core;
 using Windows.Media.Playback;
+using Microsoft.Graphics.Canvas;
+using Windows.Graphics.Imaging;
 
 // https://go.microsoft.com/fwlink/?LinkId=402352&clcid=0x804 上介绍了“空白页”项模板
 
@@ -65,6 +67,7 @@ namespace SubtitleEditor.UWP
                 {
                     Source = MediaSource.CreateFromStorageFile(file)
                 };
+
                 VideoElement.SetMediaPlayer(mediaPlayer);
                 VideoElement.Visibility = Visibility.Visible;
                 VideoStandAloneControls.MediaPlayer = mediaPlayer;

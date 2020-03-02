@@ -25,26 +25,16 @@ namespace SubtitleEditor.UWP.Controls
             this.DefaultStyleKey = typeof(StandAloneMediaTransportControls);
         }
 
-        DispatcherTimer dispatcherTimer;
-        DateTimeOffset startTime;
-        DateTimeOffset lastTime;
-        DateTimeOffset stopTime;
-        int timesTicked = 1;
-        int timesToTick = 10;
+        private readonly DispatcherTimer dispatcherTimer = new DispatcherTimer();
         public void DispatcherTimerSetup()
         {
-            dispatcherTimer = new DispatcherTimer();
             dispatcherTimer.Tick += DispatcherTimer_Tick; ;
             dispatcherTimer.Interval = new TimeSpan(0, 0, 0, 0, 1);
-            dispatcherTimer.Start();
         }
 
         private void DispatcherTimer_Tick(object sender, object e)
         {
-            if(mediaPlayer != null)
-            {
-                UpdateCurrentPosition();
-            }
+            MediaPlayerViewModel.UpdatePosition();
         }
 
         private Slider _mediaSlider;
@@ -71,7 +61,7 @@ namespace SubtitleEditor.UWP.Controls
             BindingViewModel();
 
             DispatcherTimerSetup();
-            //ValueUpdater();
+
             _visualized = true;
         }
 
@@ -83,13 +73,51 @@ namespace SubtitleEditor.UWP.Controls
 
         private void BindingViewModel()
         {
-            Binding binding = new Binding
+            Binding startBlockBinding = new Binding
             {
                 Source = MediaPlayerViewModel,
-                Path = new PropertyPath("StringPosition"),
+                Path = new PropertyPath("Position"),
+                Converter = new MediaTimeSpanFormatter(FrameRate),
+                ConverterParameter = ValueType
             };
 
-            _startPostionBlock.SetBinding(TextBlock.TextProperty, binding);
+            Binding endBlockBinding = new Binding
+            {
+                Source = MediaPlayerViewModel,
+                Path = new PropertyPath("Duration"),
+                Converter = new MediaTimeSpanFormatter(FrameRate),
+                ConverterParameter = ValueType
+            };
+
+            Binding sliderMaxValueBinding = new Binding
+            {
+                Source = MediaPlayerViewModel,
+                Path = new PropertyPath("Duration"),
+                Converter = new MediaSliderValueFormatter(FrameRate),
+                ConverterParameter = ValueType
+            };
+
+            MediaSliderValueFormatter mediaSliderValueFormatter = new MediaSliderValueFormatter(FrameRate);
+            mediaSliderValueFormatter.OnConvertBacked += ((formatter, timeSpan) =>
+            {
+                if(MediaPlayer != null)
+                {
+                    mediaPlayer.PlaybackSession.Position = timeSpan;
+                }
+            });
+            Binding sliderValueBinding = new Binding
+            {
+                Source = MediaPlayerViewModel,
+                Path = new PropertyPath("Position"),
+                Converter = mediaSliderValueFormatter,
+                Mode = BindingMode.TwoWay,
+                ConverterParameter = ValueType
+            };
+
+            _startPostionBlock.SetBinding(TextBlock.TextProperty, startBlockBinding);
+            _endPostionBlock.SetBinding(TextBlock.TextProperty, endBlockBinding);
+            _mediaSlider.SetBinding(Slider.MaximumProperty, sliderMaxValueBinding);
+            _mediaSlider.SetBinding(Slider.ValueProperty, sliderValueBinding);
         }
         private MediaPlayerViewModel MediaPlayerViewModel { set; get; } = new MediaPlayerViewModel();
 
@@ -112,103 +140,61 @@ namespace SubtitleEditor.UWP.Controls
 
             transportControl.mediaPlayer = newMediaPlayer;
 
-            transportControl.UnRegeisterMediaPlayerEvent(oldMediaPlayer);
-
-            if (transportControl._visualized)
+            if(oldMediaPlayer != null)
             {
-                transportControl.UpdateControls();
+                transportControl.UnRegeisterMediaPlayerEvent(oldMediaPlayer);
+            }
+            
+            if(newMediaPlayer != null)
+            {
+                transportControl.RegisterMediaPlayerEvent(newMediaPlayer);
             }
         }
 
-        private void PlaybackSession_PositionChanged(MediaPlaybackSession sender, object args)
+        private void RegisterMediaPlayerEvent(MediaPlayer mediaPlayer)
         {
-            UpdateCurrentPosition();
+            mediaPlayer.MediaOpened += MediaPlayer_MediaOpened;
+            mediaPlayer.CurrentStateChanged += MediaPlayer_CurrentStateChanged;
+        }
+
+        private void MediaPlayer_CurrentStateChanged(MediaPlayer sender, object args)
+        {
+            switch(sender.PlaybackSession.PlaybackState)
+            {
+                case MediaPlaybackState.Playing:
+                    App.RunOnUIThread(() =>
+                    {
+                        dispatcherTimer.Start();
+                    });
+                    break;
+                case MediaPlaybackState.Paused:
+                    App.RunOnUIThread(() =>
+                    {
+                        dispatcherTimer.Stop();
+                    });
+                    break;
+                case MediaPlaybackState.None:
+                    App.RunOnUIThread(() =>
+                    {
+                        dispatcherTimer.Stop();
+                    });
+                    break;
+            }
         }
 
         private void MediaPlayer_MediaOpened(MediaPlayer sender, object args)
         {
-            UpdateControls();
+            App.RunOnUIThread(() =>
+            {
+                MediaPlayerViewModel.LoadMediaPlayer(sender);
+            });
         }
 
-        private void UnRegeisterMediaPlayerEvent(MediaPlayer newMediaPlayer)
+        private void UnRegeisterMediaPlayerEvent(MediaPlayer mediaPlayer)
         {
-            MediaPlayer.MediaOpened -= MediaPlayer_MediaOpened;
-            MediaPlayer.PlaybackSession.PositionChanged -= PlaybackSession_PositionChanged;
+            mediaPlayer.MediaOpened -= MediaPlayer_MediaOpened;
         }
 
-        private void UpdateControls()
-        {
-            UpdateCurrentPosition();
-            UpdateDuration();
-        }
-
-        private void UpdateCurrentPosition()
-        {
-            if (mediaPlayer != null)
-            {
-                MediaPlayerViewModel.StringPosition = StringCurrentValue;
-                _mediaSlider.Value = SliderCurrentValue;
-                //_startPostionBlock.Text = StringCurrentValue;
-            }
-        }
-        private void UpdateDuration()
-        {
-            if (MediaPlayer != null)
-            {
-                //_mediaSlider.Maximum = SliderMaximum;
-                //_endPostionBlock.Text = StringMaximum;
-            }
-        }
-        private double SliderMaximum
-        {
-            get
-            {
-                var totalFrame = CalculateFrame(mediaPlayer.PlaybackSession.NaturalDuration, frameRate);
-                return Convert.ToDouble(totalFrame);
-            }
-        }
-        private double SliderCurrentValue
-        {
-            get
-            {
-                return CalculateFrame(mediaPlayer.PlaybackSession.Position, frameRate);
-            }
-        }
-
-        private string StringMaximum
-        {
-            get
-            {
-                if (valueType == TransportValueType.Time)
-                {
-                    return MediaPlayer.PlaybackSession.NaturalDuration.ToString(@"hh\:mm\:ss\,fff");
-                }
-                else
-                {
-                    return CalculateFrame(mediaPlayer.PlaybackSession.NaturalDuration, frameRate).ToString();
-                }
-            }
-        }
-
-        private string StringCurrentValue
-        {
-            get
-            {
-                if (valueType == TransportValueType.Time)
-                {
-                    return mediaPlayer.PlaybackSession.Position.ToString(@"hh\:mm\:ss\,fff");
-                }
-                else
-                {
-                    return CalculateFrame(mediaPlayer.PlaybackSession.Position, frameRate).ToString();
-                }
-            }
-        }
-
-        private static int CalculateFrame(TimeSpan span, double frameRate)
-        {
-            return Convert.ToInt32(span.TotalSeconds * frameRate);
-        }
         public enum TransportValueType { Time, Frame }
         private TransportValueType valueType;
         public TransportValueType ValueType
@@ -236,7 +222,7 @@ namespace SubtitleEditor.UWP.Controls
 
         // Using a DependencyProperty as the backing store for FrameRate.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty FrameRateProperty =
-            DependencyProperty.Register("FrameRate", typeof(double), typeof(StandAloneMediaTransportControls), new PropertyMetadata(25.0, OnFrameRateChanged));
+            DependencyProperty.Register("FrameRate", typeof(double), typeof(StandAloneMediaTransportControls), new PropertyMetadata(24.0, OnFrameRateChanged));
 
         private static void OnFrameRateChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {

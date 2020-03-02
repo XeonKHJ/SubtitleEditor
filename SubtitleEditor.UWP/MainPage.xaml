@@ -47,7 +47,7 @@
                     <ColumnDefinition Width="*"></ColumnDefinition>
                 </Grid.ColumnDefinitions>
                 <MediaPlayerElement x:Name="VideoElement" Grid.Column="0" 
-                                    Visibility="Visible" AreTransportControlsEnabled="True" AutoPlay="False">
+                                    Visibility="Collapsed" AreTransportControlsEnabled="True" AutoPlay="False">
                     <MediaPlayerElement.TransportControls>
                         <MediaTransportControls x:Name="VideoTransportControls" Visibility="Collapsed"></MediaTransportControls>
                     </MediaPlayerElement.TransportControls>
