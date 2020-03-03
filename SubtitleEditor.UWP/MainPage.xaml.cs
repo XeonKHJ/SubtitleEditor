@@ -83,21 +83,14 @@ namespace SubtitleEditor.UWP
                     mediaPlayer.MediaOpened += MediaPlayer_MediaOpened;
                     mediaPlayer.Source = MediaSource.CreateFromStorageFile(file);
                     VideoElement.SetMediaPlayer(mediaPlayer);
-                    VideoStandAloneControls.MediaPlayer = mediaPlayer;
-                    VideoStandAloneControls.FrameRate = FrameRate;
+                    //VideoStandAloneControls.MediaPlayer = mediaPlayer;
+                    //VideoStandAloneControls.FrameRate = FrameRate;
                 });
             }
         }
 
         private void MediaPlayer_MediaOpened(MediaPlayer sender, object args)
         {
-            var a = sender.PlaybackSession.GetSeekableRanges();
-            
-            foreach(var b in a)
-            {
-                var c = b;
-            }
-
             int width = (int)sender.PlaybackSession.NaturalVideoWidth;
             int height = (int)sender.PlaybackSession.NaturalVideoHeight;
             frameServerDest = new SoftwareBitmap(BitmapPixelFormat.Bgra8, width, height, BitmapAlphaMode.Ignore);
@@ -147,14 +140,16 @@ namespace SubtitleEditor.UWP
 
         private void EnableVideoControls()
         {
-            VideoFrameServer.Visibility = Visibility.Visible;
+            VideoElement.Visibility = Visibility.Visible;
+            //VideoFrameServer.Visibility = Visibility.Visible;
             VideoElementAndDialogueBoxSplitter.Visibility = Visibility.Visible;
             VideoTransportControls.Visibility = Visibility.Visible;
         }
 
         private void DisableVideoControls()
         {
-            VideoFrameServer.Visibility = Visibility.Collapsed;
+            VideoElement.Visibility = Visibility.Collapsed;
+            //VideoFrameServer.Visibility = Visibility.Collapsed;
             VideoElementAndDialogueBoxSplitter.Visibility = Visibility.Collapsed;
             VideoTransportControls.Visibility = Visibility.Collapsed;
         }
