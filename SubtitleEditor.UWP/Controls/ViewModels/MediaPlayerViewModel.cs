@@ -56,9 +56,12 @@ namespace SubtitleEditor.UWP.Controls.ViewModels
             }
         }
 
+        public TimeSpan StartTimeOffset { set; get; }
         public void LoadMediaPlayer(MediaPlayer mediaPlayer)
         {
             _mediaPlayer = mediaPlayer;
+            StartTimeOffset = mediaPlayer.PlaybackSession.Position;
+            System.Diagnostics.Debug.WriteLine(string.Format("Start Time Offset - {0}", StartTimeOffset));
             UpdateAllProperty();
         }
 
@@ -70,7 +73,14 @@ namespace SubtitleEditor.UWP.Controls.ViewModels
 
         public void UpdatePosition()
         {
-            Position = _mediaPlayer.PlaybackSession.Position;
+            if(_mediaPlayer.PlaybackSession.Position - StartTimeOffset <= TimeSpan.Zero)
+            {
+                Position = TimeSpan.Zero;
+            }
+            else
+            {
+                Position = _mediaPlayer.PlaybackSession.Position - StartTimeOffset;
+            }
         }
         
         public void UpdateDuration()
@@ -115,8 +125,10 @@ namespace SubtitleEditor.UWP.Controls.ViewModels
     public class MediaSliderValueFormatter : IValueConverter
     {
         public double FrameRate { set; get; }
-        public MediaSliderValueFormatter(double fps)
+        public TimeSpan InitialOffset { set; get; }
+        public MediaSliderValueFormatter(double fps, TimeSpan initialOffset)
         {
+            InitialOffset = initialOffset;
             FrameRate = fps;
         }
 
@@ -137,7 +149,7 @@ namespace SubtitleEditor.UWP.Controls.ViewModels
         public object ConvertBack(object value, Type targetType, object parameter, string language)
         {
             double sliderValue = (double)value;
-            TimeSpan timeSpan = new TimeSpan(System.Convert.ToInt64(sliderValue / FrameRate * 10000000));
+            TimeSpan timeSpan = new TimeSpan(System.Convert.ToInt64(sliderValue / FrameRate * 10000000)) + InitialOffset;
             OnConvertBacked?.Invoke(this, timeSpan);
             return timeSpan;
         }

@@ -46,26 +46,35 @@
                     <ColumnDefinition Width="auto"></ColumnDefinition>
                     <ColumnDefinition Width="*"></ColumnDefinition>
                 </Grid.ColumnDefinitions>
+                <Image Grid.Row="3" x:Name="VideoFrameServer" Grid.Column="0" Visibility="Collapsed"></Image>
                 <MediaPlayerElement x:Name="VideoElement" Grid.Column="0" 
                                     Visibility="Collapsed" AreTransportControlsEnabled="True" AutoPlay="False">
                     <MediaPlayerElement.TransportControls>
                         <MediaTransportControls x:Name="VideoTransportControls" Visibility="Collapsed"></MediaTransportControls>
                     </MediaPlayerElement.TransportControls>
                 </MediaPlayerElement>
-                <controls:GridSplitter x:Name="VideoElementAndDialogueBoxSplitter" Grid.Column="1" Width="5" Visibility="Collapsed" ></controls:GridSplitter>
-                <TextBox Grid.Column="2" x:Name="DialogueBox" AcceptsReturn="True"></TextBox>
+                <controls:GridSplitter x:Name="VideoElementAndDialogueBoxSplitter" Grid.Column="1" Width="2" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Visibility="Collapsed" ></controls:GridSplitter>
+                <RelativePanel Grid.Column="2">
+                    <TextBox x:Name="DialogueBox" AcceptsReturn="True" RelativePanel.AlignTopWithPanel="True" RelativePanel.AlignLeftWithPanel="True"
+                             RelativePanel.AlignRightWithPanel="True" RelativePanel.Above="PositionBox"></TextBox>
+                    <TextBox x:Name="PositionBox" RelativePanel.AlignBottomWithPanel="True" Margin="0, 0, 10, 0"></TextBox>
+                    <Button x:Name="GoToButton" RelativePanel.RightOf="PositionBox" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+                            RelativePanel.AlignVerticalCenterWith="PositionBox" RelativePanel.Below="DialogueBox"
+                            Click="GoToButton_Click"></Button>
+                </RelativePanel>
             </Grid>
             <local2:StandAloneMediaTransportControls x:Name="VideoStandAloneControls"
                 RelativePanel.AlignBottomWithPanel="True" RelativePanel.AlignLeftWithPanel="True" RelativePanel.AlignRightWithPanel="True"
-                                                     Margin="20, 0"></local2:StandAloneMediaTransportControls>
+                                                     Margin="20, 0" Visibility="Visible"></local2:StandAloneMediaTransportControls>
         </RelativePanel>
-        <controls:GridSplitter Grid.Row="2" Height="5"></controls:GridSplitter>
+        <controls:GridSplitter Grid.Row="2" Height="2" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"></controls:GridSplitter>
         <controls:DataGrid x:Name="DialoguesGrid" HorizontalAlignment="Stretch" AutoGenerateColumns="False"
                            Grid.Row="3"
                            ItemsSource="{x:Bind DialoguesViewModel}"
                            VerticalScrollBarVisibility="Visible"
                            HorizontalScrollBarVisibility="Visible"
-                           SelectionChanged="DialoguesGrid_SelectionChanged">
+                           SelectionChanged="DialoguesGrid_SelectionChanged"
+                           Visibility="Collapsed">
             <controls:DataGrid.Columns>
                 <controls:DataGridTextColumn Header="序号" Binding="{Binding No}" x:DefaultBindMode="TwoWay"></controls:DataGridTextColumn>
                 <controls:DataGridTextColumn Header="开始时间" x:DefaultBindMode="TwoWay" Binding="{Binding From, Converter={StaticResource StringFormatterValueConverter}}"></controls:DataGridTextColumn>

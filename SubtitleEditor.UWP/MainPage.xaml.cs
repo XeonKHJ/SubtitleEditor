@@ -23,6 +23,9 @@ using Windows.Media.Core;
 using Windows.Media.Playback;
 using Microsoft.Graphics.Canvas;
 using Windows.Graphics.Imaging;
+using Microsoft.Graphics.Canvas.UI.Xaml;
+using Windows.Graphics.Display;
+using Windows.Media.MediaProperties;
 
 // https://go.microsoft.com/fwlink/?LinkId=402352&clcid=0x804 上介绍了“空白页”项模板
 
@@ -54,27 +57,83 @@ namespace SubtitleEditor.UWP
         }
 
         private MediaPlayer mediaPlayer;
-        
-        private void OpenVideoFile(StorageFile file)
+        private double FrameRate;
+        private async void OpenVideoFile(StorageFile file)
         {
+        
             if(file != null)
             {
                 //关掉前一个视频
                 CloseVideo();
+                
+                List<string> encodingPropertiesToRetrieve = new List<string>();
+
+                MediaEncodingProfile mediaEncodingProfile = await MediaEncodingProfile.CreateFromFileAsync(file);
+                FrameRate = (double)mediaEncodingProfile.Video.FrameRate.Numerator / (double)mediaEncodingProfile.Video.FrameRate.Denominator;
 
                 var path = file.Path;
-                mediaPlayer = new MediaPlayer
-                {
-                    Source = MediaSource.CreateFromStorageFile(file)
-                };
 
-                VideoElement.SetMediaPlayer(mediaPlayer);
-                VideoElement.Visibility = Visibility.Visible;
-                VideoStandAloneControls.MediaPlayer = mediaPlayer;
-                VideoElementAndDialogueBoxSplitter.Visibility = Visibility.Visible;
-                VideoTransportControls.Visibility = Visibility.Visible;
-                //VideoElement.TransportControls = VideoTransportControls;
+                App.RunOnUIThread(()=>
+                {
+                    EnableVideoControls();
+                    mediaPlayer = new MediaPlayer
+                    {
+                        IsVideoFrameServerEnabled = true
+                    };
+                    mediaPlayer.MediaOpened += MediaPlayer_MediaOpened;
+                    mediaPlayer.Source = MediaSource.CreateFromStorageFile(file);
+                    VideoElement.SetMediaPlayer(mediaPlayer);
+                    VideoStandAloneControls.MediaPlayer = mediaPlayer;
+                    VideoStandAloneControls.FrameRate = FrameRate;
+                });
             }
+        }
+
+        private void MediaPlayer_MediaOpened(MediaPlayer sender, object args)
+        {
+            var a = sender.PlaybackSession.GetSeekableRanges();
+            
+            foreach(var b in a)
+            {
+                var c = b;
+            }
+
+            int width = (int)sender.PlaybackSession.NaturalVideoWidth;
+            int height = (int)sender.PlaybackSession.NaturalVideoHeight;
+            frameServerDest = new SoftwareBitmap(BitmapPixelFormat.Bgra8, width, height, BitmapAlphaMode.Ignore);
+            Debug.WriteLine(String.Format("Initial Position - TimeSpan: {0}, Frame: {1}", sender.PlaybackSession.Position, sender.PlaybackSession.Position.TotalSeconds * FrameRate));
+            
+            var actualTime = sender.PlaybackSession.NaturalDuration.Ticks * (30 / 29.97);
+
+            App.RunOnUIThread(() =>
+            {
+                canvasImageSource = new CanvasImageSource(canvasDevice, width, height, DisplayInformation.GetForCurrentView().LogicalDpi);
+                VideoFrameServer.Source = canvasImageSource;
+                mediaPlayer.VideoFrameAvailable += MediaPlayer_VideoFrameAvailableAsync;
+            });
+        }
+
+        private CanvasImageSource canvasImageSource;
+        private readonly CanvasDevice canvasDevice = CanvasDevice.GetSharedDevice();
+        private SoftwareBitmap frameServerDest;
+        private async void MediaPlayer_VideoFrameAvailableAsync(MediaPlayer sender, object args)
+        {
+            var deltaTimeSpan = sender.PlaybackSession.Position;
+            
+            if (sender.PlaybackSession.PlaybackState == MediaPlaybackState.Opening)
+            {
+                return;
+            }
+            await Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () =>
+            {
+                using (CanvasBitmap inputBitmap = CanvasBitmap.CreateFromSoftwareBitmap(canvasDevice, frameServerDest))
+                using (CanvasDrawingSession ds = canvasImageSource.CreateDrawingSession(Windows.UI.Colors.Black))
+                {
+                    mediaPlayer.CopyFrameToVideoSurface(inputBitmap);
+                    ds.DrawImage(inputBitmap);
+                }
+            });
+
         }
 
         private void CloseVideo()
@@ -82,9 +141,22 @@ namespace SubtitleEditor.UWP
             if (mediaPlayer != null)
             {
                 mediaPlayer.Dispose();
-                VideoElement.Visibility = Visibility.Collapsed;
-                VideoElementAndDialogueBoxSplitter.Visibility = Visibility.Collapsed;
+                DisableVideoControls();
             }
+        }
+
+        private void EnableVideoControls()
+        {
+            VideoFrameServer.Visibility = Visibility.Visible;
+            VideoElementAndDialogueBoxSplitter.Visibility = Visibility.Visible;
+            VideoTransportControls.Visibility = Visibility.Visible;
+        }
+
+        private void DisableVideoControls()
+        {
+            VideoFrameServer.Visibility = Visibility.Collapsed;
+            VideoElementAndDialogueBoxSplitter.Visibility = Visibility.Collapsed;
+            VideoTransportControls.Visibility = Visibility.Collapsed;
         }
 
         private async void OpenSubFile(StorageFile file)
@@ -133,12 +205,17 @@ namespace SubtitleEditor.UWP
             CloseVideo();
         }
 
-        private async void DeadLoop()
+        private void GoToButton_Click(object sender, RoutedEventArgs e)
         {
-            await Task.Run(()=>
-            { 
-                while (true) ; 
-            }) ;
+            try
+            {
+                var frame = Convert.ToInt32(PositionBox.Text);
+
+            }
+            catch(Exception)
+            {
+
+            }
         }
     }
 }

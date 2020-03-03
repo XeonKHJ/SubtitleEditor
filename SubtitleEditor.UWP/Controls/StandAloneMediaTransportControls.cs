@@ -35,12 +35,14 @@ namespace SubtitleEditor.UWP.Controls
         private void DispatcherTimer_Tick(object sender, object e)
         {
             MediaPlayerViewModel.UpdatePosition();
+            System.Diagnostics.Debug.WriteLine(MediaPlayerViewModel.Position);
         }
 
         private Slider _mediaSlider;
+        private AppBarButton _playButton;
         private TextBlock _endPostionBlock;
         private TextBlock _startPostionBlock;
-        private bool _visualized = false;
+
         protected override void OnBringIntoViewRequested(BringIntoViewRequestedEventArgs e)
         {
             base.OnBringIntoViewRequested(e);
@@ -53,6 +55,25 @@ namespace SubtitleEditor.UWP.Controls
             _endPostionBlock = GetTemplateChild("EndPositionBlock") as TextBlock;
             _startPostionBlock = GetTemplateChild("StartPositionBlock") as TextBlock;
             _mediaSlider = GetTemplateChild("MediaSlider") as Slider;
+            _playButton = GetTemplateChild("PlayButton") as AppBarButton;
+            _playButton.Click += ((sender, args) =>
+            {
+                if (mediaPlayer != null)
+                {
+                    if (mediaPlayer.PlaybackSession.PlaybackState == MediaPlaybackState.Paused)
+                    {
+                        mediaPlayer.Play();
+                    }
+                    else
+                    {
+                        if (mediaPlayer.PlaybackSession.CanPause)
+                        {
+                            mediaPlayer.Pause();
+                        }
+
+                    }
+                }
+            });
 
             //_mediaSlider.ThumbToolTipValueConverter = PositionConverter;
 
@@ -61,8 +82,6 @@ namespace SubtitleEditor.UWP.Controls
             BindingViewModel();
 
             DispatcherTimerSetup();
-
-            _visualized = true;
         }
 
         private void RenderControl()
@@ -93,14 +112,16 @@ namespace SubtitleEditor.UWP.Controls
             {
                 Source = MediaPlayerViewModel,
                 Path = new PropertyPath("Duration"),
-                Converter = new MediaSliderValueFormatter(FrameRate),
+                Converter = new MediaSliderValueFormatter(FrameRate, MediaPlayerViewModel.StartTimeOffset),
                 ConverterParameter = ValueType
             };
 
-            MediaSliderValueFormatter mediaSliderValueFormatter = new MediaSliderValueFormatter(FrameRate);
+            System.Diagnostics.Debug.WriteLine(string.Format("Slider Max Value - {0}", _mediaSlider.Maximum));
+
+            MediaSliderValueFormatter mediaSliderValueFormatter = new MediaSliderValueFormatter(FrameRate, MediaPlayerViewModel.StartTimeOffset);
             mediaSliderValueFormatter.OnConvertBacked += ((formatter, timeSpan) =>
             {
-                if(MediaPlayer != null)
+                if (MediaPlayer != null)
                 {
                     mediaPlayer.PlaybackSession.Position = timeSpan;
                 }
@@ -140,12 +161,12 @@ namespace SubtitleEditor.UWP.Controls
 
             transportControl.mediaPlayer = newMediaPlayer;
 
-            if(oldMediaPlayer != null)
+            if (oldMediaPlayer != null)
             {
                 transportControl.UnRegeisterMediaPlayerEvent(oldMediaPlayer);
             }
-            
-            if(newMediaPlayer != null)
+
+            if (newMediaPlayer != null)
             {
                 transportControl.RegisterMediaPlayerEvent(newMediaPlayer);
             }
@@ -159,23 +180,26 @@ namespace SubtitleEditor.UWP.Controls
 
         private void MediaPlayer_CurrentStateChanged(MediaPlayer sender, object args)
         {
-            switch(sender.PlaybackSession.PlaybackState)
+            switch (sender.PlaybackSession.PlaybackState)
             {
                 case MediaPlaybackState.Playing:
                     App.RunOnUIThread(() =>
                     {
+                        _playButton.Icon = new SymbolIcon(Symbol.Pause);
                         dispatcherTimer.Start();
                     });
                     break;
                 case MediaPlaybackState.Paused:
                     App.RunOnUIThread(() =>
                     {
+                        _playButton.Icon = new SymbolIcon(Symbol.Play);
                         dispatcherTimer.Stop();
                     });
                     break;
                 case MediaPlaybackState.None:
                     App.RunOnUIThread(() =>
                     {
+                        _playButton.Icon = new SymbolIcon(Symbol.Play);
                         dispatcherTimer.Stop();
                     });
                     break;
@@ -187,6 +211,7 @@ namespace SubtitleEditor.UWP.Controls
             App.RunOnUIThread(() =>
             {
                 MediaPlayerViewModel.LoadMediaPlayer(sender);
+                BindingViewModel();
             });
         }
 
@@ -212,8 +237,6 @@ namespace SubtitleEditor.UWP.Controls
             TransportValueType valueType = (TransportValueType)e.NewValue;
             transportControl.valueType = valueType;
         }
-
-        private double frameRate;
         public double FrameRate
         {
             get { return (double)GetValue(FrameRateProperty); }
@@ -222,13 +245,12 @@ namespace SubtitleEditor.UWP.Controls
 
         // Using a DependencyProperty as the backing store for FrameRate.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty FrameRateProperty =
-            DependencyProperty.Register("FrameRate", typeof(double), typeof(StandAloneMediaTransportControls), new PropertyMetadata(24.0, OnFrameRateChanged));
+            DependencyProperty.Register("FrameRate", typeof(double), typeof(StandAloneMediaTransportControls), new PropertyMetadata(29.97, OnFrameRateChanged));
 
         private static void OnFrameRateChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
             var transportControl = d as StandAloneMediaTransportControls;
             double frameRate = (double)e.NewValue;
-            transportControl.frameRate = frameRate;
         }
 
         /// <summary>

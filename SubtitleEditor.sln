@@ -5,7 +5,7 @@ VisualStudioVersion = 16.0.29806.167
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SubtitleEditor.UWP", "SubtitleEditor.UWP\SubtitleEditor.UWP.csproj", "{2F4ACFC5-C6A1-44FC-B48E-479AF57AEE76}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SubtitleEditor.Subtitles", "SubtitleEditor.Subtitles\SubtitleEditor.Subtitles.csproj", "{78AB1363-8472-4425-A697-1BE6B838DF00}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SubtitleEditor.Subtitles", "SubtitleEditor.Subtitles\SubtitleEditor.Subtitles.csproj", "{78AB1363-8472-4425-A697-1BE6B838DF00}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
