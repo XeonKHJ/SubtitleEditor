@@ -13,29 +13,11 @@ namespace SubtitleEditor.UWP.Controls
 {
     public class FrameMediaPlayer
     {
-
-
-        public MediaPlayer MediaPlayer { get; private set; } = new MediaPlayer();
-
-        public bool IsOpened { get; private set; }
-        public double FrameRate { get; private set; }
-        public TimeSpan StartOffset { set; private get; }
-
-        private FrameMediaPlayer(IMediaPlaybackSource source)
-        {
-            RegsiterEvent();
-            MediaPlayer.Source = source;
-        }
-
-        private void RegsiterEvent()
-        {
-            MediaPlayer.MediaOpened += MediaPlayer_MediaOpened;
-        }
-        private void MediaPlayer_MediaOpened(MediaPlayer sender, object args)
-        {
-            StartOffset = sender.PlaybackSession.Position;
-            Opened?.Invoke(this, null);
-        }
+        /// <summary>
+        /// 从文件构造该类
+        /// </summary>
+        /// <param name="mediaFile"></param>
+        /// <returns></returns>
         static async Task<FrameMediaPlayer> CreateFromStorageFileAsync(IStorageFile mediaFile)
         {
             var source = MediaSource.CreateFromStorageFile(mediaFile);
@@ -44,11 +26,137 @@ namespace SubtitleEditor.UWP.Controls
             return frameMediaPlayer;
         }
 
+        public FrameMediaPlayer()
+        {
+            MediaPlayer = new MediaPlayer();
+        }
+        private FrameMediaPlayer(IMediaPlaybackSource source)
+        {
+            RegisterMediaPlayerEvent();
+            MediaPlayer.Source = source;
+        }
+
+        public IMediaPlaybackSource Source
+        {
+            set
+            {
+                ;
+            }
+        }
+
+        private async void SetUpMediaPlayer(IMediaPlaybackSource source)
+        {
+            
+        }
+
+        private void UnregisterMediaPlayerEvent()
+        {
+            MediaPlayer.VideoFrameAvailable -= MediaPlayer_VideoFrameAvailable;
+            MediaPlayer.MediaOpened -= MediaPlayer_MediaOpened;
+        }
+
+        private void MediaPlayer_VideoFrameAvailable(MediaPlayer sender, object args)
+        {
+            throw new NotImplementedException();
+        }
+
+        public TimeSpan CorrectedPosition
+        {
+            get
+            {
+                return TimeSpan.FromSeconds(CurrentFrame / FrameRate);
+            }
+        }
+
+        /// <summary>
+        /// 媒体的校正后时长（自然时长×帧率）
+        /// </summary>
+        public TimeSpan CorrectedDuration
+        {
+            get
+            {
+                return TimeSpan.FromSeconds(CurrentFrame / FrameRate);
+            }
+        }
+
+        /// <summary>
+        /// 媒体的自然时长
+        /// </summary>
+        public TimeSpan Duration
+        {
+            get
+            {
+                return MediaPlaybackSession.NaturalDuration;
+            }
+        }
+
+        /// <summary>
+        /// 经过起始偏移后的当前位置
+        /// </summary>
+        public TimeSpan Position
+        {
+            get
+            {
+                return MediaPlaybackSession.Position - StartOffset;
+            }
+        }
+        public MediaPlayer MediaPlayer { get; private set; } = new MediaPlayer();
+        public MediaPlaybackSession MediaPlaybackSession { get { return MediaPlayer.PlaybackSession; } }
+        public bool IsOpened { get; private set; }
+        public double FrameRate { get; private set; }
+        public TimeSpan StartOffset { set; private get; }
+        public long CurrentFrame
+        {
+            get
+            {
+                return (long)(Position.Seconds / FrameRate);
+            }
+        }
+
+        private void RegisterMediaPlayerEvent()
+        {
+            MediaPlayer.MediaOpened += MediaPlayer_MediaOpened;
+        }
+        private void MediaPlayer_MediaOpened(MediaPlayer sender, object args)
+        {
+            StartOffset = sender.PlaybackSession.Position;
+            //等待起始位移时间计算完成
+            StartCountingOffset();
+
+            Opened?.Invoke(this, null);
+        }
+
+
+        private void StartCountingOffset()
+        {
+            MediaPlayer.VideoFrameAvailable += CountingStartTimeOffset;
+
+            while (isInitialReady) ;
+            renderedCounts = 0;
+            isInitialReady = false;
+
+            System.Diagnostics.Debug.WriteLine(string.Format("StartCountingOffset: {0}", StartOffset));
+
+            MediaPlayer.VideoFrameAvailable -= CountingStartTimeOffset;
+        }
+
+        int renderedCounts = 0;
+        bool isInitialReady = false;
+        private void CountingStartTimeOffset(MediaPlayer sender, object args)
+        {
+            ++renderedCounts;
+            if (renderedCounts > 2)
+            {
+                StartOffset = sender.PlaybackSession.Position;
+                MediaPlayer.VideoFrameAvailable -= MediaPlayer_VideoFrameAvailable;
+                renderedCounts = 0;
+            }
+        }
+
         private async Task CalculateFrameRateAsync(IStorageFile file)
         {
             MediaEncodingProfile profile = await MediaEncodingProfile.CreateFromFileAsync(file);
             FrameRate = (double)profile.Video.FrameRate.Numerator / (double)profile.Video.FrameRate.Denominator;
-
         }
 
         public event TypedEventHandler<FrameMediaPlayer, object> Opened;

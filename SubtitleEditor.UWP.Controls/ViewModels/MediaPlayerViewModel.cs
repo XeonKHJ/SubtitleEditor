@@ -5,26 +5,24 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
-using Windows.Media.Playback;
-using Windows.UI.Xaml.Data;
-using SubtitleEditor.UWP.Controls;
 using Windows.Foundation;
-using static SubtitleEditor.UWP.Controls.StandAloneMediaTransportControls;
+using Windows.UI.Xaml.Data;
+using static SubtitleEditor.UWP.Controls.FramedMediaTransportControls;
 
 namespace SubtitleEditor.UWP.Controls.ViewModels
 {
     public class MediaPlayerViewModel : INotifyPropertyChanged
     {
-        private MediaPlayer _mediaPlayer;
+        private FrameMediaPlayer _frameMediaPlayer;
         public MediaPlayerViewModel()
         {
-            _mediaPlayer = new MediaPlayer();
+            _frameMediaPlayer = new FrameMediaPlayer();
         }
 
-        public MediaPlayerViewModel(MediaPlayer mediaPlayer)
+        public MediaPlayerViewModel(FrameMediaPlayer mediaPlayer)
         {
-            _mediaPlayer = mediaPlayer;
-            
+            _frameMediaPlayer = mediaPlayer;
+
         }
         public event PropertyChangedEventHandler PropertyChanged;
 
@@ -57,10 +55,8 @@ namespace SubtitleEditor.UWP.Controls.ViewModels
         }
 
         public TimeSpan StartTimeOffset { set; get; }
-        public void LoadMediaPlayer(MediaPlayer mediaPlayer)
+        public void LoadMediaPlayer(FrameMediaPlayer mediaPlayer)
         {
-            _mediaPlayer = mediaPlayer;
-            StartTimeOffset = mediaPlayer.PlaybackSession.Position;
             System.Diagnostics.Debug.WriteLine(string.Format("Start Time Offset - {0}", StartTimeOffset));
             UpdateAllProperty();
         }
@@ -73,19 +69,19 @@ namespace SubtitleEditor.UWP.Controls.ViewModels
 
         public void UpdatePosition()
         {
-            if(_mediaPlayer.PlaybackSession.Position - StartTimeOffset <= TimeSpan.Zero)
+            if (_frameMediaPlayer.PlaybackSession.Position - StartTimeOffset <= TimeSpan.Zero)
             {
                 Position = TimeSpan.Zero;
             }
             else
             {
-                Position = _mediaPlayer.PlaybackSession.Position - StartTimeOffset;
+                Position = _frameMediaPlayer.PlaybackSession.Position - StartTimeOffset;
             }
         }
-        
+
         public void UpdateDuration()
         {
-            Duration = _mediaPlayer.PlaybackSession.NaturalDuration;
+            Duration = _frameMediaPlayer.PlaybackSession.NaturalDuration;
         }
 
         public void OnPropertyChanged([CallerMemberName] string propertyName = null)
@@ -94,7 +90,7 @@ namespace SubtitleEditor.UWP.Controls.ViewModels
         }
     }
 
-    internal class MediaTimeSpanFormatter : IValueConverter
+    public class MediaTimeSpanFormatter : IValueConverter
     {
         public double FrameRate { set; get; }
         public MediaTimeSpanFormatter(double fps)
@@ -106,7 +102,7 @@ namespace SubtitleEditor.UWP.Controls.ViewModels
             TransportValueType transportValueType = (TransportValueType)parameter;
             TimeSpan timeSpan = (TimeSpan)value;
 
-            if(transportValueType == TransportValueType.Time)
+            if (transportValueType == TransportValueType.Time)
             {
                 return timeSpan.ToString(@"hh\:mm\:ss\,fff");
             }
@@ -122,7 +118,7 @@ namespace SubtitleEditor.UWP.Controls.ViewModels
         }
     }
 
-    internal class MediaSliderValueFormatter : IValueConverter
+    public class MediaSliderValueFormatter : IValueConverter
     {
         public double FrameRate { set; get; }
         public TimeSpan InitialOffset { set; get; }
@@ -157,7 +153,7 @@ namespace SubtitleEditor.UWP.Controls.ViewModels
         public event TypedEventHandler<MediaSliderValueFormatter, TimeSpan> OnConvertBacked;
     }
 
-    internal class MediaSliderToolTipFormatter : IValueConverter
+    public class MediaSliderToolTipFormatter : IValueConverter
     {
         private double FrameRate { set; get; }
         public MediaSliderToolTipFormatter(double fps)
@@ -178,7 +174,7 @@ namespace SubtitleEditor.UWP.Controls.ViewModels
             TransportValueType transportValueType = (TransportValueType)parameter;
             double sliderValue = (double)transportValueType;
 
-            if(transportValueType == TransportValueType.Frame)
+            if (transportValueType == TransportValueType.Frame)
             {
                 return System.Convert.ToInt32(sliderValue).ToString();
             }
@@ -195,5 +191,4 @@ namespace SubtitleEditor.UWP.Controls.ViewModels
             throw new NotImplementedException();
         }
     }
-
 }

@@ -26,6 +26,7 @@ using Windows.Graphics.Imaging;
 using Microsoft.Graphics.Canvas.UI.Xaml;
 using Windows.Graphics.Display;
 using Windows.Media.MediaProperties;
+using Windows.UI.Core;
 
 // https://go.microsoft.com/fwlink/?LinkId=402352&clcid=0x804 上介绍了“空白页”项模板
 
@@ -117,7 +118,7 @@ namespace SubtitleEditor.UWP
             {
                 return;
             }
-            await Dispatcher.RunAsync(Windows.UI.Core.CoreDispatcherPriority.Normal, () =>
+            await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
             {
                 using (CanvasBitmap inputBitmap = CanvasBitmap.CreateFromSoftwareBitmap(canvasDevice, frameServerDest))
                 using (CanvasDrawingSession ds = canvasImageSource.CreateDrawingSession(Windows.UI.Colors.Black))
