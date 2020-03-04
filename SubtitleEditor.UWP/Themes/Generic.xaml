@@ -17,8 +17,8 @@
                             <ColumnDefinition Width="auto"></ColumnDefinition>
                         </Grid.ColumnDefinitions>
                         <AppBarButton x:Name="PlayButton" Grid.Column="0" VerticalAlignment="Center" LabelPosition="Collapsed" IsCompact="True" Icon="Play">
-                            </AppBarButton>
-                            <TextBlock x:Name="StartPositionBlock" Grid.Column="1" Text="0" VerticalAlignment="Center" Margin="10, 0, 10, 0"></TextBlock>
+                        </AppBarButton>
+                        <TextBlock x:Name="StartPositionBlock" Grid.Column="1" Text="0" VerticalAlignment="Center" Margin="10, 0, 10, 0"></TextBlock>
                         <Slider Grid.Column="2" x:Name="MediaSlider" VerticalAlignment="Center" Margin="0, 0, 10, 0">
                             <!--ThumbToolTipValueConverter="{StaticResource SliderThumTooltipValueConverter}"-->
                         </Slider>

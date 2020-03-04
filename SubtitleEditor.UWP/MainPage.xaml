@@ -21,6 +21,7 @@
             <RowDefinition Height="auto"></RowDefinition>
             <RowDefinition Height="8*"></RowDefinition>
         </Grid.RowDefinitions>
+        <!--<local2:FrameMediaTransportControls></local2:FrameMediaTransportControls>-->
         <MenuBar VerticalAlignment="Top" Grid.Row="0">
             <MenuBarItem Title="文件">
                 <MenuFlyoutItem x:Name="OpenButton" Text="打开…" Click="OpenButton_ClickAsync">

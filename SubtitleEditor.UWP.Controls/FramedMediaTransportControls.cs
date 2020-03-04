@@ -1,8 +1,11 @@
-﻿using System;
+﻿using SubtitleEditor.UWP.Controls.ViewModels;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
+using System.Threading.Tasks;
 using Windows.Media.Playback;
+using Windows.UI.Core;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Data;
@@ -53,17 +56,17 @@ namespace SubtitleEditor.UWP.Controls
             _playButton = GetTemplateChild("PlayButton") as AppBarButton;
             _playButton.Click += ((sender, args) =>
             {
-                if (mediaPlayer != null)
+                if (FrameMediaPlayer != null)
                 {
-                    if (mediaPlayer.PlaybackSession.PlaybackState == MediaPlaybackState.Paused)
+                    if (FrameMediaPlayer.PlaybackSession.PlaybackState == MediaPlaybackState.Paused)
                     {
-                        mediaPlayer.Play();
+                        FrameMediaPlayer.Play();
                     }
                     else
                     {
-                        if (mediaPlayer.PlaybackSession.CanPause)
+                        if (FrameMediaPlayer.PlaybackSession.CanPause)
                         {
-                            mediaPlayer.Pause();
+                            FrameMediaPlayer.Pause();
                         }
 
                     }
@@ -118,7 +121,7 @@ namespace SubtitleEditor.UWP.Controls
             {
                 if (MediaPlayer != null)
                 {
-                    mediaPlayer.PlaybackSession.Position = timeSpan;
+                    FrameMediaPlayer.PlaybackSession.Position = timeSpan;
                 }
             });
             Binding sliderValueBinding = new Binding
@@ -151,10 +154,10 @@ namespace SubtitleEditor.UWP.Controls
         private static void OnMediaPlayerChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
             var transportControl = d as FramedMediaTransportControls;
-            MediaPlayer newMediaPlayer = e.NewValue as MediaPlayer;
-            MediaPlayer oldMediaPlayer = e.OldValue as MediaPlayer;
+            FrameMediaPlayer newMediaPlayer = e.NewValue as FrameMediaPlayer;
+            FrameMediaPlayer oldMediaPlayer = e.OldValue as FrameMediaPlayer;
 
-            transportControl.mediaPlayer = newMediaPlayer;
+            transportControl.FrameMediaPlayer = newMediaPlayer;
 
             if (oldMediaPlayer != null)
             {
@@ -167,32 +170,32 @@ namespace SubtitleEditor.UWP.Controls
             }
         }
 
-        private void RegisterMediaPlayerEvent(MediaPlayer mediaPlayer)
+        private void RegisterMediaPlayerEvent(FrameMediaPlayer mediaPlayer)
         {
             mediaPlayer.MediaOpened += MediaPlayer_MediaOpened;
             mediaPlayer.CurrentStateChanged += MediaPlayer_CurrentStateChanged;
         }
 
-        private void MediaPlayer_CurrentStateChanged(MediaPlayer sender, object args)
+        private async void MediaPlayer_CurrentStateChanged(FrameMediaPlayer sender, object args)
         {
             switch (sender.PlaybackSession.PlaybackState)
             {
                 case MediaPlaybackState.Playing:
-                    App.RunOnUIThread(() =>
+                    await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
                     {
                         _playButton.Icon = new SymbolIcon(Symbol.Pause);
                         dispatcherTimer.Start();
                     });
                     break;
                 case MediaPlaybackState.Paused:
-                    App.RunOnUIThread(() =>
+                    await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
                     {
                         _playButton.Icon = new SymbolIcon(Symbol.Play);
                         dispatcherTimer.Stop();
                     });
                     break;
                 case MediaPlaybackState.None:
-                    App.RunOnUIThread(() =>
+                    await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
                     {
                         _playButton.Icon = new SymbolIcon(Symbol.Play);
                         dispatcherTimer.Stop();
@@ -201,16 +204,16 @@ namespace SubtitleEditor.UWP.Controls
             }
         }
 
-        private void MediaPlayer_MediaOpened(MediaPlayer sender, object args)
+        private async void MediaPlayer_MediaOpened(FrameMediaPlayer sender, object args)
         {
-            App.RunOnUIThread(() =>
+            await Dispatcher.RunAsync(CoreDispatcherPriority.Normal ,() =>
             {
                 MediaPlayerViewModel.LoadMediaPlayer(sender);
                 BindingViewModel();
             });
         }
 
-        private void UnRegeisterMediaPlayerEvent(MediaPlayer mediaPlayer)
+        private void UnRegeisterMediaPlayerEvent(FrameMediaPlayer mediaPlayer)
         {
             mediaPlayer.MediaOpened -= MediaPlayer_MediaOpened;
         }

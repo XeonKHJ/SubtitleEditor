@@ -185,6 +185,10 @@
       <Project>{78ab1363-8472-4425-a697-1be6b838df00}</Project>
       <Name>SubtitleEditor.Subtitles</Name>
     </ProjectReference>
+    <ProjectReference Include="..\SubtitleEditor.UWP.Controls\SubtitleEditor.UWP.Controls.csproj">
+      <Project>{b42346e3-0558-4870-b09d-b17f00bd59e6}</Project>
+      <Name>SubtitleEditor.UWP.Controls</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup />
   <PropertyGroup Condition=" '$(VisualStudioVersion)' == '' or '$(VisualStudioVersion)' &lt; '14.0' ">

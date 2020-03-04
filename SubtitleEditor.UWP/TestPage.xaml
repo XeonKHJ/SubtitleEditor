@@ -11,7 +11,5 @@
     RequestedTheme="Light">
 
     <Grid>
-        <local2:StandAloneMediaTransportControls HorizontalAlignment="Center" VerticalAlignment="Center"
-                                                 Width="300"></local2:StandAloneMediaTransportControls>
     </Grid>
 </Page>

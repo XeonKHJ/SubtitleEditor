@@ -40,13 +40,13 @@ namespace SubtitleEditor.UWP.Controls
         {
             set
             {
-                ;
+                IsOpened = false;   
+                MediaPlayer.Source = value;
             }
-        }
-
-        private async void SetUpMediaPlayer(IMediaPlaybackSource source)
-        {
-            
+            get
+            {
+                return MediaPlayer.Source;
+            }
         }
 
         private void UnregisterMediaPlayerEvent()
@@ -86,7 +86,7 @@ namespace SubtitleEditor.UWP.Controls
         {
             get
             {
-                return MediaPlaybackSession.NaturalDuration;
+                return PlaybackSession.NaturalDuration;
             }
         }
 
@@ -97,33 +97,58 @@ namespace SubtitleEditor.UWP.Controls
         {
             get
             {
-                return MediaPlaybackSession.Position - StartOffset;
+                return PlaybackSession.Position - StartOffset;
             }
         }
         public MediaPlayer MediaPlayer { get; private set; } = new MediaPlayer();
-        public MediaPlaybackSession MediaPlaybackSession { get { return MediaPlayer.PlaybackSession; } }
+        public MediaPlaybackSession PlaybackSession { get { return MediaPlayer.PlaybackSession; } }
         public bool IsOpened { get; private set; }
         public double FrameRate { get; private set; }
-        public TimeSpan StartOffset { set; private get; }
+        public TimeSpan StartOffset { private set; get; }
         public long CurrentFrame
         {
             get
             {
                 return (long)(Position.Seconds / FrameRate);
             }
+            set
+            {
+                ;
+            }
+        }
+
+        public void Play()
+        {
+            MediaPlayer.Play();
+        }
+        public void Pause()
+        {
+            MediaPlayer.Pause();
+        }
+
+        public void StepBackwardOneFrame()
+        {
+            var currentPosition = CurrentFrame;
         }
 
         private void RegisterMediaPlayerEvent()
         {
             MediaPlayer.MediaOpened += MediaPlayer_MediaOpened;
+            MediaPlayer.CurrentStateChanged += MediaPlayer_CurrentStateChanged;
         }
+
+        private void MediaPlayer_CurrentStateChanged(MediaPlayer sender, object args)
+        {
+            CurrentStateChanged?.Invoke(this, args);
+        }
+
         private void MediaPlayer_MediaOpened(MediaPlayer sender, object args)
         {
             StartOffset = sender.PlaybackSession.Position;
             //等待起始位移时间计算完成
             StartCountingOffset();
 
-            Opened?.Invoke(this, null);
+            MediaOpened?.Invoke(this, null);
         }
 
 
@@ -134,7 +159,6 @@ namespace SubtitleEditor.UWP.Controls
             while (isInitialReady) ;
             renderedCounts = 0;
             isInitialReady = false;
-
             System.Diagnostics.Debug.WriteLine(string.Format("StartCountingOffset: {0}", StartOffset));
 
             MediaPlayer.VideoFrameAvailable -= CountingStartTimeOffset;
@@ -159,6 +183,7 @@ namespace SubtitleEditor.UWP.Controls
             FrameRate = (double)profile.Video.FrameRate.Numerator / (double)profile.Video.FrameRate.Denominator;
         }
 
-        public event TypedEventHandler<FrameMediaPlayer, object> Opened;
+        public event TypedEventHandler<FrameMediaPlayer, object> CurrentStateChanged;
+        public event TypedEventHandler<FrameMediaPlayer, object> MediaOpened;
     }
 }
