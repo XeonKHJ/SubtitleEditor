@@ -5,8 +5,6 @@
     xmlns:local="using:SubtitleEditor.UWP">
 
     <Application.Resources>
-        <ResourceDictionary Source="ms-appx:///SubtitleEditor.UWP.Controls/Themes/Generic.xaml">
-            <ControlTemplate x:Key="FramedMediaTransportControls"></ControlTemplate>
-        </ResourceDictionary>
+
     </Application.Resources>
 </Application>
