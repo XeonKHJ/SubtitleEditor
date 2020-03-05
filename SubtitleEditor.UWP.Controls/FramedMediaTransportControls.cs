@@ -41,11 +41,6 @@ namespace SubtitleEditor.UWP.Controls
         private TextBlock _endPostionBlock;
         private TextBlock _startPostionBlock;
 
-        protected override void OnBringIntoViewRequested(BringIntoViewRequestedEventArgs e)
-        {
-            base.OnBringIntoViewRequested(e);
-        }
-
         protected override void OnApplyTemplate()
         {
             base.OnApplyTemplate();

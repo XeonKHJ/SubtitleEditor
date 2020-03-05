@@ -16,7 +16,7 @@ using Windows.UI.Xaml.Media;
 
 // The Templated Control item template is documented at https://go.microsoft.com/fwlink/?LinkId=234235
 
-namespace SubtitleEditor.UWP.Controls
+namespace SubtitleEditor.UWP.Controls.Old
 {
     public sealed class StandAloneMediaTransportControls : Control
     {

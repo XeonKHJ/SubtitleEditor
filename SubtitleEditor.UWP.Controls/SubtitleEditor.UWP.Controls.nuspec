@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package >
+  <metadata>
+    <id>SubtitleEditor.UWP.Controls</id>
+    <version>0.0.1</version>
+    <title>FramedMediaControls</title>
+    <authors>Hongjia</authors>
+    <owners>Hongjia</owners>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <license type="expression">MIT</license>
+    <projectUrl>http://project_url_here_or_delete_this_line/</projectUrl>
+    <iconUrl>http://icon_url_here_or_delete_this_line/</iconUrl>
+    <description>Test</description>
+    <releaseNotes>Summary of changes made in this release of the package.</releaseNotes>
+    <copyright>Copyright 2020</copyright>
+    <tags>media video</tags>
+  </metadata>
+
+  <files>
+    <file src="Themes\Generic.xaml" target="lib\uap10.0\Themes"></file>
+
+    <file src="bin\Debug\SubtitleEditor.UWP.Controls.dll" target="lib\uap10.0"/>
+    
+    <file src="bin\ARM\Debug\SubtitleEditor.UWP.Controls.dll" target="runtimes\win10-arm"/>
+    <file src="bin\ARM\Debug\SubtitleEditor.UWP.Controls.pri" target="runtimes\win10-arm"/>
+
+    <file src="bin\ARM64\Debug\SubtitleEditor.UWP.Controls.dll" target="runtimes\win10-arm64"/>
+    <file src="bin\ARM64\Debug\SubtitleEditor.UWP.Controls.pri" target="runtimes\win10-arm64"/>
+
+    <file src="bin\x64\Debug\SubtitleEditor.UWP.Controls.dll" target="runtimes\win10-x64"/>
+    <file src="bin\x64\Debug\SubtitleEditor.UWP.Controls.pri" target="runtimes\win10-x64"/>
+
+    <file src="bin\x86\Debug\SubtitleEditor.UWP.Controls.dll" target="runtimes\win10-x86"/>
+    <file src="bin\x86\Debug\SubtitleEditor.UWP.Controls.pri" target="runtimes\win10-x86"/>
+  </files>
+</package>

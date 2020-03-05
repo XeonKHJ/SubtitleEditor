@@ -11,7 +11,7 @@ using SubtitleEditor.UWP.Controls;
 using Windows.Foundation;
 using static SubtitleEditor.UWP.Controls.StandAloneMediaTransportControls;
 
-namespace SubtitleEditor.UWP.Controls.ViewModels
+namespace SubtitleEditor.UWP.Controls.Old.ViewModels
 {
     public class MediaPlayerViewModel : INotifyPropertyChanged
     {
