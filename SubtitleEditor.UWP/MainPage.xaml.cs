@@ -43,6 +43,16 @@ namespace SubtitleEditor.UWP
             this.InitializeComponent();
             mediaPlayer.MediaOpened += MediaPlayer_MediaOpenedAsync;
             mediaPlayer.VideoFrameAvailable += MediaPlayer_VideoFrameAvailableAsync;
+
+            mediaPlayer.DebugEvent += MediaPlayer_DebugEvent;
+        }
+
+        private async void MediaPlayer_DebugEvent(FrameMediaPlayer sender, object args)
+        {
+            await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
+            {
+                DialogueBox.Text += (args.ToString() + '\n');
+            });
         }
 
         private StorageFile _file;
@@ -58,13 +68,14 @@ namespace SubtitleEditor.UWP
 
             StorageFile file = await picker.PickSingleFileAsync();
 
+
             OpenSubFile(file);
         }
 
         private readonly FrameMediaPlayer mediaPlayer = new FrameMediaPlayer();
         private async void OpenVideoFile(StorageFile file)
         {
-            
+
             if (file != null)
             {
                 //关掉前一个视频
@@ -90,7 +101,7 @@ namespace SubtitleEditor.UWP
 
         private async void MediaPlayer_MediaOpenedAsync(FrameMediaPlayer sender, object args)
         {
-            if(inputBitmap != null)
+            if (inputBitmap != null)
             {
                 var oldBitmap = inputBitmap;
                 inputBitmap = null;
@@ -99,13 +110,21 @@ namespace SubtitleEditor.UWP
             int width = (int)sender.PlaybackSession.NaturalVideoWidth;
             int height = (int)sender.PlaybackSession.NaturalVideoHeight;
 
+            System.Diagnostics.Debug.WriteLine("MediaPlayer_MediaOpenedAsync - " + sender.StartOffset);
+            FrameServerSetup(width, height);
+
+        }
+
+        private async void FrameServerSetup(int width, int height)
+        {
+            isReadtyToDraw = false;
             frameServerDest = new SoftwareBitmap(BitmapPixelFormat.Bgra8, width, height, BitmapAlphaMode.Ignore);
             await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
-            {
-                canvasImageSource = new CanvasImageSource(canvasDevice, width, height, DisplayInformation.GetForCurrentView().LogicalDpi);
-                VideoFrameServer.Source = canvasImageSource;
-                inputBitmap = CanvasBitmap.CreateFromSoftwareBitmap(canvasDevice, frameServerDest);
-            });
+                {
+                    canvasImageSource = new CanvasImageSource(canvasDevice, width, height, DisplayInformation.GetForCurrentView().LogicalDpi);
+                    VideoFrameServer.Source = canvasImageSource;
+                    inputBitmap = CanvasBitmap.CreateFromSoftwareBitmap(canvasDevice, frameServerDest);
+                });
             isReadtyToDraw = true;
         }
 
@@ -116,9 +135,10 @@ namespace SubtitleEditor.UWP
         private bool isReadtyToDraw = false;
         private async void MediaPlayer_VideoFrameAvailableAsync(FrameMediaPlayer sender, object args)
         {
-            if(isReadtyToDraw)
+            if (isReadtyToDraw)
             {
                 mediaPlayer.CopyFrameToVideoSurface(inputBitmap);
+
                 await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
                 {
                     using (CanvasDrawingSession ds = canvasImageSource.CreateDrawingSession(Windows.UI.Colors.Black))
@@ -156,7 +176,7 @@ namespace SubtitleEditor.UWP
 
         private void DisableVideoControls()
         {
-            VideoElement.Visibility = Visibility.Collapsed;
+            //VideoElement.Visibility = Visibility.Collapsed;
             VideoFrameServer.Visibility = Visibility.Collapsed;
             VideoElementAndDialogueBoxSplitter.Visibility = Visibility.Collapsed;
             FramedTransportControls.Visibility = Visibility.Collapsed;

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.ExceptionServices;
 using System.Text;
 using System.Threading.Tasks;
 using Windows.Foundation;
@@ -77,6 +78,7 @@ namespace SubtitleEditor.UWP.Controls
         private void MediaPlayer_VideoFrameAvailable(MediaPlayer sender, object args)
         {
             VideoFrameAvailable?.Invoke(this, args);
+
         }
 
         public TimeSpan CorrectedPosition
@@ -140,7 +142,7 @@ namespace SubtitleEditor.UWP.Controls
             set
             {
                 //计算时间
-                Position = TimeSpan.FromSeconds(value / FrameRate);
+                Position = TimeSpan.FromSeconds((value + 0.5) / FrameRate);
             }
         }
 
@@ -172,8 +174,13 @@ namespace SubtitleEditor.UWP.Controls
         {
             if (_mediaSource != null)
             {
+                MediaStatus = FrameMediaStatus.Closing;
+
                 var oldMediaPlayer = MediaPlayer;
                 oldMediaPlayer.VideoFrameAvailable -= MediaPlayer_VideoFrameAvailable;
+
+                //关闭旧播放器
+                oldMediaPlayer.Dispose();
 
                 //关掉视频源
                 _mediaSource.Dispose();
@@ -186,26 +193,42 @@ namespace SubtitleEditor.UWP.Controls
                 };
                 RegisterMediaPlayerEvent();
 
-                //关闭旧播放器
-                oldMediaPlayer.Dispose();
                 CurrentFrame = 0;
+
+                MediaStatus = FrameMediaStatus.Closed;
             }
         }
         /// <summary>
         /// 将当前视频帧复制到Direct3DSurface目标。
         /// </summary>
         /// <param name="destination"></param>
+        [HandleProcessCorruptedStateExceptions]
         public void CopyFrameToVideoSurface(IDirect3DSurface destination)
         {
-            MediaPlayer.CopyFrameToVideoSurface(destination);
-
+            if(destination != null)
+            {
+                try
+                {
+                    MediaPlayer.CopyFrameToVideoSurface(destination);
+                }
+                catch(Exception exception)
+                {
+                    switch(exception.HResult)
+                    {
+                        //GPU 设备实例已经暂停
+                        case -2005270523:
+                            break;
+                        default:
+                            throw new Exception(exception.Message);
+                    }
+                }
+            }
         }
 
         private void RegisterMediaPlayerEvent()
         {
             MediaPlayer.MediaOpened += MediaPlayer_MediaOpened;
             MediaPlayer.CurrentStateChanged += MediaPlayer_CurrentStateChanged;
-            MediaPlayer.VideoFrameAvailable += CountingStartTimeOffset;
         }
 
         private void MediaPlayer_CurrentStateChanged(MediaPlayer sender, object args)
@@ -213,26 +236,31 @@ namespace SubtitleEditor.UWP.Controls
             CurrentStateChanged?.Invoke(this, args);
         }
 
+        public enum FrameMediaStatus { Openning, Opened, Closing, Closed }
+        public FrameMediaStatus MediaStatus { private set; get; } = FrameMediaStatus.Closed;
+
+        public event TypedEventHandler<FrameMediaPlayer, object> DebugEvent;
         private void MediaPlayer_MediaOpened(MediaPlayer sender, object args)
         {
             MediaPlayer.VideoFrameAvailable -= MediaPlayer_VideoFrameAvailable;
+            MediaPlayer.VideoFrameAvailable += CountingStartTimeOffset;
 
+            DebugEvent?.Invoke(this, "MediaPlayer_MediaOpened");
+
+            renderedCounts = 0;
             isInitialReady = false;
             //等待起始位移时间计算完成
             StartCountingOffset();
 
             System.Diagnostics.Debug.WriteLine(string.Format("Frame Counts: {0}", FrameCounts));
             System.Diagnostics.Debug.WriteLine(string.Format("Fixed Duration: {0}", CorrectedDuration));
-
-            MediaPlayer.VideoFrameAvailable += MediaPlayer_VideoFrameAvailable;
-            MediaOpened?.Invoke(this, null);
         }
 
 
         private void StartCountingOffset()
         {
-            while (!isInitialReady) ;
-            renderedCounts = 0;
+            DebugEvent?.Invoke(this, "StartCountingOffset");
+            DebugEvent?.Invoke(this, "CountingOffsetComplete");
             System.Diagnostics.Debug.WriteLine(string.Format("StartCountingOffset: {0}", StartOffset));
         }
 
@@ -240,14 +268,22 @@ namespace SubtitleEditor.UWP.Controls
         bool isInitialReady = false;
         private void CountingStartTimeOffset(MediaPlayer sender, object args)
         {
+
             if (!isInitialReady)
             {
+                DebugEvent?.Invoke(this, "Media_CountingStartTimeOffset");
                 ++renderedCounts;
                 if (renderedCounts > 2)
                 {
                     StartOffset = sender.PlaybackSession.Position;
+                    DebugEvent?.Invoke(this, StartOffset);
                     renderedCounts = 0;
                     isInitialReady = true;
+                    DebugEvent?.Invoke(this, "CountingStartTimeOffset - " + isInitialReady.ToString());
+                    MediaPlayer.VideoFrameAvailable -= CountingStartTimeOffset;
+                    MediaPlayer.VideoFrameAvailable += MediaPlayer_VideoFrameAvailable;
+                    MediaStatus = FrameMediaStatus.Opened;
+                    MediaOpened?.Invoke(this, null);
                 }
             }
         }
@@ -282,12 +318,12 @@ namespace SubtitleEditor.UWP.Controls
                     MediaPlayer.Dispose();
                     MediaPlayer = null;
                 }
-                if(_mediaSource != null)
+                if (_mediaSource != null)
                 {
                     _mediaSource.Dispose();
                     _mediaSource = null;
                 }
-                
+
             }
         }
 
