@@ -12,6 +12,7 @@ namespace SubtitleEditor.UWP
         public object Convert(object value, Type targetType, object parameter, string language)
         {
             // Retrieve the format string and use it to format the value.
+
             string formatString = parameter as string;
             string valueString = value.ToString();
             if (value is DateTime dateTime)

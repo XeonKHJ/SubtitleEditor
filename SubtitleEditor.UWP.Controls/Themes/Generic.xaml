@@ -10,17 +10,17 @@
                     <Grid>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="auto"></ColumnDefinition>
-                            <ColumnDefinition Width="auto"></ColumnDefinition>
+                            <ColumnDefinition Width="100"></ColumnDefinition>
                             <ColumnDefinition Width="*"></ColumnDefinition>
-                            <ColumnDefinition Width="auto"></ColumnDefinition>
+                            <ColumnDefinition Width="90"></ColumnDefinition>
                         </Grid.ColumnDefinitions>
                         <AppBarButton x:Name="PlayButton" Grid.Column="0" VerticalAlignment="Center" LabelPosition="Collapsed" IsCompact="True" Icon="Play">
                         </AppBarButton>
-                        <TextBlock x:Name="StartPositionBlock" Grid.Column="1" Text="0" VerticalAlignment="Center" Margin="10, 0, 10, 0"></TextBlock>
-                        <Slider Grid.Column="2" x:Name="MediaSlider" VerticalAlignment="Center" Margin="0, 0, 10, 0">
+                        <TextBlock x:Name="StartPositionBlock" Grid.Column="1" Text="00:00:00,000" VerticalAlignment="Center" Margin="10, 0, 10, 0"></TextBlock>
+                        <Slider Grid.Column="2" x:Name="MediaSlider" VerticalAlignment="Center" Margin="0, 0, 10, 0" Visibility="Visible">
                             <!--ThumbToolTipValueConverter="{StaticResource SliderThumTooltipValueConverter}"-->
                         </Slider>
-                        <TextBlock x:Name="EndPositionBlock" Grid.Column="3" VerticalAlignment="Center" Text="0"></TextBlock>
+                        <TextBlock x:Name="EndPositionBlock" Grid.Column="3" VerticalAlignment="Center" HorizontalAlignment="Right" Text="00:00:00,000"></TextBlock>
                     </Grid>
                 </ControlTemplate>
             </Setter.Value>

@@ -18,8 +18,8 @@ namespace SubtitleEditor.UWP.ViewModels
         }
 
         public int No { set; get; }
-        public DateTime From { set; get; }
-        public DateTime To { set; get; }
+        public TimeSpan From { set; get; }
+        public TimeSpan To { set; get; }
         public string Line { set; get; }
 
         public TimeSpan Span

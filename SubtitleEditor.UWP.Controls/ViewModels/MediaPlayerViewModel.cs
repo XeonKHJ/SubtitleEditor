@@ -32,7 +32,7 @@ namespace SubtitleEditor.UWP.Controls.ViewModels
         {
             set
             {
-                if(value > _frameMediaPlayer.Duration)
+                if(value > Duration)
                 {
                     position = duration;
                 }
@@ -102,19 +102,18 @@ namespace SubtitleEditor.UWP.Controls.ViewModels
         }
         public object Convert(object value, Type targetType, object parameter, string language)
         {
-            //TransportValueType transportValueType = (TransportValueType)parameter;
-            //TimeSpan timeSpan = (TimeSpan)value;
+            TransportValueType transportValueType = (TransportValueType)parameter;
+            TimeSpan timeSpan = (TimeSpan)value;
 
-            //if (transportValueType == TransportValueType.Time)
-            //{
-            //    return timeSpan.ToString(@"hh\:mm\:ss\,fff");
-            //}
-            //else
-            //{
-            //    return System.Convert.ToInt32(timeSpan.TotalSeconds * FrameRate);
-            //}
-
-            return "fuck";
+            if (transportValueType == TransportValueType.Time)
+            {
+                string positionString = timeSpan.ToString(@"hh\:mm\:ss\,fff");
+                return positionString;
+            }
+            else
+            {
+                return System.Convert.ToInt32(timeSpan.TotalSeconds * FrameRate);
+            }
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, string language)

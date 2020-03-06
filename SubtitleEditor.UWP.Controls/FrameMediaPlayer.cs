@@ -120,7 +120,7 @@ namespace SubtitleEditor.UWP.Controls
             {
                 return PlaybackSession.Position - StartOffset;
             }
-            private set
+            set
             {
                 if (value + StartOffset < Duration)
                 {
@@ -131,7 +131,7 @@ namespace SubtitleEditor.UWP.Controls
         public MediaPlayer MediaPlayer { get; private set; } = new MediaPlayer();
         public MediaPlaybackSession PlaybackSession { get { return MediaPlayer.PlaybackSession; } }
         public bool IsOpened { get; private set; }
-        public double FrameRate { get; private set; }
+        public double FrameRate { get; private set; } = 30;
         public TimeSpan StartOffset { private set; get; }
         public long CurrentFrame
         {
@@ -229,6 +229,12 @@ namespace SubtitleEditor.UWP.Controls
         {
             MediaPlayer.MediaOpened += MediaPlayer_MediaOpened;
             MediaPlayer.CurrentStateChanged += MediaPlayer_CurrentStateChanged;
+            MediaPlayer.MediaEnded += MediaPlayer_MediaEnded;
+        }
+
+        private void MediaPlayer_MediaEnded(MediaPlayer sender, object args)
+        {
+            MediaEnded?.Invoke(this, args);
         }
 
         private void MediaPlayer_CurrentStateChanged(MediaPlayer sender, object args)
@@ -238,14 +244,10 @@ namespace SubtitleEditor.UWP.Controls
 
         public enum FrameMediaStatus { Openning, Opened, Closing, Closed }
         public FrameMediaStatus MediaStatus { private set; get; } = FrameMediaStatus.Closed;
-
-        public event TypedEventHandler<FrameMediaPlayer, object> DebugEvent;
         private void MediaPlayer_MediaOpened(MediaPlayer sender, object args)
         {
             MediaPlayer.VideoFrameAvailable -= MediaPlayer_VideoFrameAvailable;
             MediaPlayer.VideoFrameAvailable += CountingStartTimeOffset;
-
-            DebugEvent?.Invoke(this, "MediaPlayer_MediaOpened");
 
             renderedCounts = 0;
             isInitialReady = false;
@@ -259,8 +261,6 @@ namespace SubtitleEditor.UWP.Controls
 
         private void StartCountingOffset()
         {
-            DebugEvent?.Invoke(this, "StartCountingOffset");
-            DebugEvent?.Invoke(this, "CountingOffsetComplete");
             System.Diagnostics.Debug.WriteLine(string.Format("StartCountingOffset: {0}", StartOffset));
         }
 
@@ -271,15 +271,12 @@ namespace SubtitleEditor.UWP.Controls
 
             if (!isInitialReady)
             {
-                DebugEvent?.Invoke(this, "Media_CountingStartTimeOffset");
                 ++renderedCounts;
                 if (renderedCounts > 2)
                 {
                     StartOffset = sender.PlaybackSession.Position;
-                    DebugEvent?.Invoke(this, StartOffset);
                     renderedCounts = 0;
                     isInitialReady = true;
-                    DebugEvent?.Invoke(this, "CountingStartTimeOffset - " + isInitialReady.ToString());
                     MediaPlayer.VideoFrameAvailable -= CountingStartTimeOffset;
                     MediaPlayer.VideoFrameAvailable += MediaPlayer_VideoFrameAvailable;
                     MediaStatus = FrameMediaStatus.Opened;
@@ -329,6 +326,7 @@ namespace SubtitleEditor.UWP.Controls
 
         public event TypedEventHandler<FrameMediaPlayer, object> CurrentStateChanged;
         public event TypedEventHandler<FrameMediaPlayer, object> MediaOpened;
+        public event TypedEventHandler<FrameMediaPlayer, object> MediaEnded;
         public event TypedEventHandler<FrameMediaPlayer, object> VideoFrameAvailable;
     }
 }

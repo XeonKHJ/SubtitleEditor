@@ -6,6 +6,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:controls="using:Microsoft.Toolkit.Uwp.UI.Controls"
+    xmlns:extensions="using:Microsoft.Toolkit.Uwp.UI.Extensions"
     xmlns:local2="using:SubtitleEditor.UWP.Controls"
     mc:Ignorable="d"
     Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
@@ -20,6 +21,7 @@
             <RowDefinition Height="3*"></RowDefinition>
             <RowDefinition Height="auto"></RowDefinition>
             <RowDefinition Height="8*"></RowDefinition>
+            <RowDefinition Height="auto"></RowDefinition>
         </Grid.RowDefinitions>
         <MenuBar VerticalAlignment="Top" Grid.Row="0">
             <MenuBarItem Title="文件">
@@ -28,9 +30,14 @@
                         <KeyboardAccelerator Modifiers="Control" Key="O"/>
                     </MenuFlyoutItem.KeyboardAccelerators>
                 </MenuFlyoutItem>
-                <MenuFlyoutItem x:Name="UpdateButton" Text="打开最近文件…" Click="UpdateButton_Click">
-                </MenuFlyoutItem>
                 <MenuFlyoutSubItem x:Name="OpenRecentFileItem" Text="打开最近文件"></MenuFlyoutSubItem>
+                <MenuFlyoutItem x:Name="SaveButton" Text="保存…" Click="SaveButton_Click">
+                    <MenuFlyoutItem.KeyboardAccelerators>
+                        <KeyboardAccelerator Modifiers="Control" Key="S"></KeyboardAccelerator>
+                    </MenuFlyoutItem.KeyboardAccelerators>
+                </MenuFlyoutItem>
+                <MenuFlyoutItem x:Name="ExportButton" Text="导出…"></MenuFlyoutItem>
+                <MenuFlyoutItem x:Name="ExitButton" Text="退出"></MenuFlyoutItem>
             </MenuBarItem>
             <MenuBarItem Title="视频">
                 <MenuFlyoutItem x:Name="OpenVideoButton" Text="打开视频…" Click="OpenVideoButton_Click"></MenuFlyoutItem>
@@ -40,11 +47,12 @@
             <MenuBarItem Title="关于"></MenuBarItem>
         </MenuBar>
         <RelativePanel Grid.Row="1">
-            <Grid x:Name="VideoGrid" RelativePanel.Above="FramedTransportControls" RelativePanel.AlignRightWithPanel="True" RelativePanel.AlignLeftWithPanel="True" RelativePanel.AlignTopWithPanel="True">
+            <Grid x:Name="VideoGrid" RelativePanel.Above="FramedTransportControls" RelativePanel.AlignRightWithPanel="True" 
+                  RelativePanel.AlignLeftWithPanel="True" RelativePanel.AlignTopWithPanel="True">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="auto"></ColumnDefinition>
-                    <ColumnDefinition Width="auto"></ColumnDefinition>
-                    <ColumnDefinition Width="*"></ColumnDefinition>
+                    <ColumnDefinition x:Name="VideoColumn" Width="auto"></ColumnDefinition>
+                    <ColumnDefinition x:Name="SliderColumn" Width="auto"></ColumnDefinition>
+                    <ColumnDefinition x:Name="EditorColumn" Width="1*"></ColumnDefinition>
                 </Grid.ColumnDefinitions>
                 <Image Grid.Row="3" x:Name="VideoFrameServer" Grid.Column="0" Visibility="Visible"></Image>
                 <controls:Loading></controls:Loading>
@@ -55,18 +63,23 @@
                     </MediaPlayerElement.TransportControls>
                 </MediaPlayerElement>
                 <controls:GridSplitter x:Name="VideoElementAndDialogueBoxSplitter" Grid.Column="1" Width="2" VerticalAlignment="Stretch" HorizontalAlignment="Stretch" Visibility="Collapsed" ></controls:GridSplitter>
-                <RelativePanel Grid.Column="2">
+                <RelativePanel Grid.Column="2" Margin="10, 0">
                     <TextBox x:Name="DialogueBox" AcceptsReturn="True" RelativePanel.AlignTopWithPanel="True" RelativePanel.AlignLeftWithPanel="True"
                              RelativePanel.AlignRightWithPanel="True" RelativePanel.Above="PositionBox"></TextBox>
-                    <TextBox x:Name="PositionBox" RelativePanel.AlignBottomWithPanel="True" Margin="0, 0, 10, 0"></TextBox>
+                    <TextBox x:Name="PositionBox"
+                             RelativePanel.AlignBottomWithPanel="True" Width="150" Margin="0, 10, 10, 10" VerticalAlignment="Center"></TextBox>
                     <Button x:Name="GoToButton" RelativePanel.RightOf="PositionBox" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
-                            RelativePanel.AlignVerticalCenterWith="PositionBox" RelativePanel.Below="DialogueBox"
-                            Click="GoToButton_Click"></Button>
+                            RelativePanel.AlignVerticalCenterWith="PositionBox" RelativePanel.Below="DialogueBox" 
+                            Click="GoToButton_Click" Margin="0, 10, 10, 10">跳转</Button>
+                    <RadioButton x:Name="TimeButton" RelativePanel.RightOf="GoToButton" RelativePanel.AlignVerticalCenterWith="GoToButton" Margin="0, 10, 10, 10"
+                                 GroupName="ValueTypeGroup" IsChecked="True" Checked="TimeButton_Checked">显示时间</RadioButton>
+                    <RadioButton x:Name="FrameButton" RelativePanel.RightOf="TimeButton" RelativePanel.AlignVerticalCenterWith="GoToButton" Margin="0, 10, 10, 10"
+                                 GroupName="ValueTypeGroup" Checked="FrameButton_Checked">显示帧</RadioButton>
                 </RelativePanel>
             </Grid>
-            <local2:FramedMediaTransportControls x:Name="FramedTransportControls"
+            <local2:FramedMediaTransportControls x:Name="FramedTransportControls" Margin="10, 0"
                 RelativePanel.AlignBottomWithPanel="True" RelativePanel.AlignLeftWithPanel="True" RelativePanel.AlignRightWithPanel="True"
-                                                      Visibility="Collapsed" FrameMediaPlayer="{x:Bind mediaPlayer}"></local2:FramedMediaTransportControls>
+                                                      Visibility="Visible" ValueType="Time" FrameMediaPlayer="{x:Bind mediaPlayer}"></local2:FramedMediaTransportControls>
         </RelativePanel>
         <controls:GridSplitter Grid.Row="2" Height="2" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"></controls:GridSplitter>
         <controls:DataGrid x:Name="DialoguesGrid" HorizontalAlignment="Stretch" AutoGenerateColumns="False"
@@ -75,7 +88,8 @@
                            VerticalScrollBarVisibility="Visible"
                            HorizontalScrollBarVisibility="Visible"
                            SelectionChanged="DialoguesGrid_SelectionChanged"
-                           Visibility="Visible">
+                           Visibility="Visible"
+                           >
             <controls:DataGrid.Columns>
                 <controls:DataGridTextColumn Header="序号" Binding="{Binding No}" x:DefaultBindMode="TwoWay"></controls:DataGridTextColumn>
                 <controls:DataGridTextColumn Header="开始时间" x:DefaultBindMode="TwoWay" Binding="{Binding From, Converter={StaticResource StringFormatterValueConverter}}"></controls:DataGridTextColumn>
@@ -91,5 +105,15 @@
                 </controls:DataGridTextColumn>
             </controls:DataGrid.Columns>
         </controls:DataGrid>
+        <Grid x:Name="StatusGrid" Grid.Row="4" Padding="5">
+            <Grid.Background>
+                <AcrylicBrush TintColor="Black" TintOpacity="0.2"></AcrylicBrush>
+            </Grid.Background>
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                <TextBlock Text="编码：" VerticalAlignment="Center"></TextBlock>
+                <ComboBox ItemsSource="{x:Bind Encodings}">
+                </ComboBox>
+            </StackPanel>
+        </Grid>
     </Grid>
 </Page>

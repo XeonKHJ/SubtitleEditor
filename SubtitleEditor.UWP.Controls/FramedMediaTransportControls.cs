@@ -84,6 +84,11 @@ namespace SubtitleEditor.UWP.Controls
 
         private void BindingViewModel()
         {
+            if(FrameMediaPlayer == null)
+            {
+                return;
+            }
+
             Binding startBlockBinding = new Binding
             {
                 Source = MediaPlayerViewModel,
@@ -177,6 +182,17 @@ namespace SubtitleEditor.UWP.Controls
         {
             mediaPlayer.MediaOpened += MediaPlayer_MediaOpened;
             mediaPlayer.CurrentStateChanged += MediaPlayer_CurrentStateChanged;
+            mediaPlayer.MediaEnded += MediaPlayer_MediaEnded;
+        }
+
+        private async void MediaPlayer_MediaEnded(FrameMediaPlayer sender, object args)
+        {
+            await Dispatcher.RunAsync(CoreDispatcherPriority.Normal ,() =>
+            {
+                MediaPlayerViewModel.Position = MediaPlayerViewModel.Duration;
+            });
+            
+            System.Diagnostics.Debug.WriteLine("Media is Ended.");
         }
 
         private async void MediaPlayer_CurrentStateChanged(FrameMediaPlayer sender, object args)
@@ -190,6 +206,7 @@ namespace SubtitleEditor.UWP.Controls
                         {
                             _playButton.Icon = new SymbolIcon(Symbol.Pause);
                         }
+                        sender.PlaybackSession.PositionChanged -= PlaybackSession_PositionChanged;
                         dispatcherTimer.Start();
                     });
                     break;
@@ -201,6 +218,8 @@ namespace SubtitleEditor.UWP.Controls
                             _playButton.Icon = new SymbolIcon(Symbol.Play);
                         }
                         dispatcherTimer.Stop();
+                        sender.PlaybackSession.PositionChanged -= PlaybackSession_PositionChanged;
+                        sender.PlaybackSession.PositionChanged += PlaybackSession_PositionChanged;
                     });
                     break;
                 case MediaPlaybackState.None:
@@ -211,9 +230,20 @@ namespace SubtitleEditor.UWP.Controls
                             _playButton.Icon = new SymbolIcon(Symbol.Play);
                         }
                         dispatcherTimer.Stop();
+                        sender.PlaybackSession.PositionChanged -= PlaybackSession_PositionChanged;
+                        sender.PlaybackSession.PositionChanged += PlaybackSession_PositionChanged;
                     });
                     break;
             }
+        }
+
+        private async void PlaybackSession_PositionChanged(MediaPlaybackSession sender, object args)
+        {
+            await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
+            {
+                MediaPlayerViewModel.UpdatePosition();
+                System.Diagnostics.Debug.WriteLine("PlaybackSession_PositionChanged");
+            });
         }
 
         private async void MediaPlayer_MediaOpened(FrameMediaPlayer sender, object args)
@@ -234,7 +264,7 @@ namespace SubtitleEditor.UWP.Controls
         public enum TransportValueType { Time, Frame }
         public TransportValueType ValueType
         {
-            get { return (TransportValueType)GetValue(ValueTypeProperty); }
+            get { System.Diagnostics.Debug.WriteLine("GetValueTYpe"); return (TransportValueType)GetValue(ValueTypeProperty); }
             set { SetValue(ValueTypeProperty, value); }
         }
 
@@ -245,6 +275,7 @@ namespace SubtitleEditor.UWP.Controls
         {
             var transportControl = d as FramedMediaTransportControls;
             TransportValueType valueType = (TransportValueType)e.NewValue;
+            transportControl.BindingViewModel();
         }
         public double FrameRate
         {

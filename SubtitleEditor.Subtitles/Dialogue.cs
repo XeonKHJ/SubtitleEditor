@@ -6,14 +6,14 @@ namespace SubtitleEditor.Subtitles
 {
     public class Dialogue
     {
-        public Dialogue(DateTime from, DateTime to, string line)
+        public Dialogue(TimeSpan from, TimeSpan to, string line)
         {
             From = from;
             To = to;
             Line = line;
         }
 
-        public Dialogue(int no, DateTime from, DateTime to, string line, string originalText)
+        public Dialogue(int no, TimeSpan from, TimeSpan to, string line, string originalText)
         {
             No = no;
             From = from;
@@ -23,8 +23,8 @@ namespace SubtitleEditor.Subtitles
         }
         public int No { set; get; }
         public string Narrator { get; set; }
-        public DateTime From { get; set; }
-        public DateTime To { get; set; }
+        public TimeSpan From { get; set; }
+        public TimeSpan To { get; set; }
         public string Line { set; get; } = "";
         public string OriginalText { set; get; }
     }

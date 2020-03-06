@@ -50,7 +50,7 @@ namespace SubtitleEditor.Subtitles
                 var beginTime = groups["beginTime"].Value;
                 var endTime = groups["endTime"].Value;
                 var line = groups["dialogue"].Value;
-                Dialogue dialogue = new Dialogue(no, DateTime.ParseExact(beginTime, "HH:mm:ss,fff", null), DateTime.ParseExact(endTime, "HH:mm:ss,fff", null), line, match.Value);
+                Dialogue dialogue = new Dialogue(no, TimeSpan.ParseExact(beginTime, @"hh\:mm\:ss\,fff", null), TimeSpan.ParseExact(endTime, @"hh\:mm\:ss\,fff", null), line, match.Value);
                 subtitle.Dialogues.Add(dialogue);
             }
 

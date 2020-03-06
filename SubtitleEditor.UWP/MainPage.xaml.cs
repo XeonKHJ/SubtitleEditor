@@ -43,16 +43,6 @@ namespace SubtitleEditor.UWP
             this.InitializeComponent();
             mediaPlayer.MediaOpened += MediaPlayer_MediaOpenedAsync;
             mediaPlayer.VideoFrameAvailable += MediaPlayer_VideoFrameAvailableAsync;
-
-            mediaPlayer.DebugEvent += MediaPlayer_DebugEvent;
-        }
-
-        private async void MediaPlayer_DebugEvent(FrameMediaPlayer sender, object args)
-        {
-            await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
-            {
-                DialogueBox.Text += (args.ToString() + '\n');
-            });
         }
 
         private StorageFile _file;
@@ -84,10 +74,6 @@ namespace SubtitleEditor.UWP
                 _file = file;
 
                 await mediaPlayer.LoadFileAsync(file);
-                //using (var stream = await file.OpenStreamForReadAsync())
-                //{
-                //    await mediaPlayer.LoadStreamAsync(stream.AsRandomAccessStream(), file.ContentType);
-                //}
 
                 var path = file.Path;
 
@@ -99,7 +85,7 @@ namespace SubtitleEditor.UWP
             }
         }
 
-        private async void MediaPlayer_MediaOpenedAsync(FrameMediaPlayer sender, object args)
+        private void MediaPlayer_MediaOpenedAsync(FrameMediaPlayer sender, object args)
         {
             if (inputBitmap != null)
             {
@@ -112,7 +98,6 @@ namespace SubtitleEditor.UWP
 
             System.Diagnostics.Debug.WriteLine("MediaPlayer_MediaOpenedAsync - " + sender.StartOffset);
             FrameServerSetup(width, height);
-
         }
 
         private async void FrameServerSetup(int width, int height)
@@ -141,15 +126,25 @@ namespace SubtitleEditor.UWP
 
                 await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
                 {
-                    using (CanvasDrawingSession ds = canvasImageSource.CreateDrawingSession(Windows.UI.Colors.Black))
+                    try
                     {
-                        try
+                        using (CanvasDrawingSession ds = canvasImageSource.CreateDrawingSession(Windows.UI.Colors.Black))
                         {
-                            ds.DrawImage(inputBitmap);
+                            try
+                            {
+                                ds.DrawImage(inputBitmap);
+                            }
+                            catch (ArgumentException exception)
+                            {
+                                Debug.WriteLine(exception);
+                            }
                         }
-                        catch (ArgumentException exception)
+                    }
+                    catch(Exception exception)
+                    {
+                        if((uint)exception.HResult == 0x802b0020)
                         {
-                            System.Diagnostics.Debug.WriteLine(exception);
+                            ;
                         }
                     }
                 });
@@ -176,6 +171,7 @@ namespace SubtitleEditor.UWP
 
         private void DisableVideoControls()
         {
+            VideoColumn.Width = GridLength.Auto;
             //VideoElement.Visibility = Visibility.Collapsed;
             VideoFrameServer.Visibility = Visibility.Collapsed;
             VideoElementAndDialogueBoxSplitter.Visibility = Visibility.Collapsed;
@@ -187,25 +183,43 @@ namespace SubtitleEditor.UWP
             if (file != null)
             {
                 using (var stream = await file.OpenReadAsync())
+                using (var streamReader = new StreamReader(stream.AsStreamForRead(), true))
                 {
-                    StreamReader streamReader = new StreamReader(stream.AsStreamForRead());
-                    var content = await streamReader.ReadToEndAsync();
+                    //var contentBytes = new byte[stream.Size];
+                    //await stream.AsStreamForRead().ReadAsync(contentBytes, 0, (int)stream.Size).ConfigureAwait(false);
+                    var content = await streamReader.ReadToEndAsync().ConfigureAwait(true);
+
+                    //检测编码
+                    //var encodings = System.Text.Encoding.GetEncodings();
+                    //foreach(var encoding in encodings)
+                    //{
+                    //    Debug.WriteLine(encoding.CodePage);
+
+                    //}
+
                     SubRipParser subRipParser = new SubRipParser();
                     Subtitle = subRipParser.LoadFromString(content);
                     DialoguesViewModel.LoadSubtitle(Subtitle);
                 }
             }
         }
-        private void UpdateButton_Click(object sender, RoutedEventArgs e)
-        {
-            DialoguesViewModel.Add(new DialogueViewModel(new Dialogue(DateTime.Now, DateTime.Now, "shit")));
-        }
 
+        private List<string> Encodings
+        { 
+            get
+            {
+                var encodingInfos = System.Text.Encoding.GetEncodings().ToList();
+                return (from encoding in encodingInfos
+                        select encoding.DisplayName).ToList();
+            }
+        }
         private void DialoguesGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (e.AddedItems.Count != 0)
             {
-                DialogueBox.Text = ((DialogueViewModel)e.AddedItems.First()).Line;
+                var firstItem = (DialogueViewModel)e.AddedItems.First();
+                DialogueBox.Text = firstItem.Line;
+                mediaPlayer.Position = firstItem.From;
             }
         }
 
@@ -232,12 +246,34 @@ namespace SubtitleEditor.UWP
         {
             try
             {
-                mediaPlayer.Dispose();
+                
             }
             catch (Exception)
             {
 
             }
+        }
+
+        private void SaveButton_Click(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+        private void TimeButton_Checked(object sender, RoutedEventArgs e)
+        {
+            if(FramedTransportControls != null)
+            {
+                FramedTransportControls.ValueType = FramedMediaTransportControls.TransportValueType.Time;
+            }
+        }
+
+        private void FrameButton_Checked(object sender, RoutedEventArgs e)
+        {
+            if(FramedTransportControls != null)
+            {
+                FramedTransportControls.ValueType = FramedMediaTransportControls.TransportValueType.Frame;
+            }
+            
         }
     }
 }
