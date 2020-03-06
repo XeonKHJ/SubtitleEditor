@@ -27,6 +27,7 @@ using Microsoft.Graphics.Canvas.UI.Xaml;
 using Windows.Graphics.Display;
 using Windows.Media.MediaProperties;
 using Windows.UI.Core;
+using SubtitleEditor.UWP.Controls;
 
 // https://go.microsoft.com/fwlink/?LinkId=402352&clcid=0x804 上介绍了“空白页”项模板
 
@@ -40,8 +41,11 @@ namespace SubtitleEditor.UWP
         public MainPage()
         {
             this.InitializeComponent();
+            mediaPlayer.MediaOpened += MediaPlayer_MediaOpenedAsync;
+            mediaPlayer.VideoFrameAvailable += MediaPlayer_VideoFrameAvailableAsync;
         }
 
+        private StorageFile _file;
         public Subtitle Subtitle;
         public DialoguesViewModel DialoguesViewModel = new DialoguesViewModel();
         private async void OpenButton_ClickAsync(object sender, RoutedEventArgs e)
@@ -57,76 +61,79 @@ namespace SubtitleEditor.UWP
             OpenSubFile(file);
         }
 
-        private MediaPlayer mediaPlayer;
-        private double FrameRate;
+        private readonly FrameMediaPlayer mediaPlayer = new FrameMediaPlayer();
         private async void OpenVideoFile(StorageFile file)
         {
-        
-            if(file != null)
+            
+            if (file != null)
             {
                 //关掉前一个视频
                 CloseVideo();
-                
-                List<string> encodingPropertiesToRetrieve = new List<string>();
 
-                MediaEncodingProfile mediaEncodingProfile = await MediaEncodingProfile.CreateFromFileAsync(file);
-                FrameRate = (double)mediaEncodingProfile.Video.FrameRate.Numerator / (double)mediaEncodingProfile.Video.FrameRate.Denominator;
+                _file = file;
+
+                await mediaPlayer.LoadFileAsync(file);
+                //using (var stream = await file.OpenStreamForReadAsync())
+                //{
+                //    await mediaPlayer.LoadStreamAsync(stream.AsRandomAccessStream(), file.ContentType);
+                //}
 
                 var path = file.Path;
 
-                App.RunOnUIThread(()=>
+                await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
                 {
+                    FramedTransportControls.FrameMediaPlayer = mediaPlayer;
                     EnableVideoControls();
-                    mediaPlayer = new MediaPlayer
-                    {
-                        IsVideoFrameServerEnabled = true
-                    };
-                    mediaPlayer.MediaOpened += MediaPlayer_MediaOpened;
-                    mediaPlayer.Source = MediaSource.CreateFromStorageFile(file);
-                    VideoElement.SetMediaPlayer(mediaPlayer);
-                    //VideoStandAloneControls.MediaPlayer = mediaPlayer;
-                    //VideoStandAloneControls.FrameRate = FrameRate;
                 });
             }
         }
 
-        private void MediaPlayer_MediaOpened(MediaPlayer sender, object args)
+        private async void MediaPlayer_MediaOpenedAsync(FrameMediaPlayer sender, object args)
         {
+            if(inputBitmap != null)
+            {
+                var oldBitmap = inputBitmap;
+                inputBitmap = null;
+                oldBitmap.Dispose();
+            }
             int width = (int)sender.PlaybackSession.NaturalVideoWidth;
             int height = (int)sender.PlaybackSession.NaturalVideoHeight;
-            frameServerDest = new SoftwareBitmap(BitmapPixelFormat.Bgra8, width, height, BitmapAlphaMode.Ignore);
-            Debug.WriteLine(String.Format("Initial Position - TimeSpan: {0}, Frame: {1}", sender.PlaybackSession.Position, sender.PlaybackSession.Position.TotalSeconds * FrameRate));
-            
-            var actualTime = sender.PlaybackSession.NaturalDuration.Ticks * (30 / 29.97);
 
-            App.RunOnUIThread(() =>
+            frameServerDest = new SoftwareBitmap(BitmapPixelFormat.Bgra8, width, height, BitmapAlphaMode.Ignore);
+            await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
             {
                 canvasImageSource = new CanvasImageSource(canvasDevice, width, height, DisplayInformation.GetForCurrentView().LogicalDpi);
                 VideoFrameServer.Source = canvasImageSource;
-                mediaPlayer.VideoFrameAvailable += MediaPlayer_VideoFrameAvailableAsync;
+                inputBitmap = CanvasBitmap.CreateFromSoftwareBitmap(canvasDevice, frameServerDest);
             });
         }
 
         private CanvasImageSource canvasImageSource;
         private readonly CanvasDevice canvasDevice = CanvasDevice.GetSharedDevice();
         private SoftwareBitmap frameServerDest;
-        private async void MediaPlayer_VideoFrameAvailableAsync(MediaPlayer sender, object args)
+        private CanvasBitmap inputBitmap;
+        private async void MediaPlayer_VideoFrameAvailableAsync(FrameMediaPlayer sender, object args)
         {
-            var deltaTimeSpan = sender.PlaybackSession.Position;
-            
-            if (sender.PlaybackSession.PlaybackState == MediaPlaybackState.Opening)
+            if(inputBitmap != null)
             {
-                return;
-            }
-            await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
-            {
-                using (CanvasBitmap inputBitmap = CanvasBitmap.CreateFromSoftwareBitmap(canvasDevice, frameServerDest))
-                using (CanvasDrawingSession ds = canvasImageSource.CreateDrawingSession(Windows.UI.Colors.Black))
+                Debug.WriteLine(canvasImageSource.AlphaMode);
+                Debug.WriteLine(Windows.UI.Colors.Black);
+                mediaPlayer.CopyFrameToVideoSurface(inputBitmap);
+                await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
                 {
-                    mediaPlayer.CopyFrameToVideoSurface(inputBitmap);
-                    ds.DrawImage(inputBitmap);
-                }
-            });
+                    using (CanvasDrawingSession ds = canvasImageSource.CreateDrawingSession(Windows.UI.Colors.Black))
+                    {
+                        try
+                        {
+                            ds.DrawImage(inputBitmap);
+                        }
+                        catch (ArgumentException exception)
+                        {
+                            System.Diagnostics.Debug.WriteLine(exception);
+                        }
+                    }
+                });
+            }
 
         }
 
@@ -134,25 +141,25 @@ namespace SubtitleEditor.UWP
         {
             if (mediaPlayer != null)
             {
-                mediaPlayer.Dispose();
+                mediaPlayer.Close();
                 DisableVideoControls();
             }
         }
 
         private void EnableVideoControls()
         {
-            VideoElement.Visibility = Visibility.Visible;
-            //VideoFrameServer.Visibility = Visibility.Visible;
+            //VideoElement.Visibility = Visibility.Visible;
+            VideoFrameServer.Visibility = Visibility.Visible;
             VideoElementAndDialogueBoxSplitter.Visibility = Visibility.Visible;
-            VideoTransportControls.Visibility = Visibility.Visible;
+            FramedTransportControls.Visibility = Visibility.Visible;
         }
 
         private void DisableVideoControls()
         {
             VideoElement.Visibility = Visibility.Collapsed;
-            //VideoFrameServer.Visibility = Visibility.Collapsed;
+            VideoFrameServer.Visibility = Visibility.Collapsed;
             VideoElementAndDialogueBoxSplitter.Visibility = Visibility.Collapsed;
-            VideoTransportControls.Visibility = Visibility.Collapsed;
+            FramedTransportControls.Visibility = Visibility.Collapsed;
         }
 
         private async void OpenSubFile(StorageFile file)
@@ -176,7 +183,7 @@ namespace SubtitleEditor.UWP
 
         private void DialoguesGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if(e.AddedItems.Count != 0)
+            if (e.AddedItems.Count != 0)
             {
                 DialogueBox.Text = ((DialogueViewModel)e.AddedItems.First()).Line;
             }
@@ -205,10 +212,9 @@ namespace SubtitleEditor.UWP
         {
             try
             {
-                var frame = Convert.ToInt32(PositionBox.Text);
-
+                mediaPlayer.Dispose();
             }
-            catch(Exception)
+            catch (Exception)
             {
 
             }

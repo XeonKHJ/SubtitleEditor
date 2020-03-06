@@ -32,6 +32,10 @@ namespace SubtitleEditor.UWP.Controls.ViewModels
         {
             set
             {
+                if(value > _frameMediaPlayer.Duration)
+                {
+                    position = duration;
+                }
                 position = value;
                 OnPropertyChanged();
             }
@@ -54,11 +58,9 @@ namespace SubtitleEditor.UWP.Controls.ViewModels
                 return duration;
             }
         }
-
-        public TimeSpan StartTimeOffset { set; get; }
         public void LoadMediaPlayer(FrameMediaPlayer mediaPlayer)
         {
-            System.Diagnostics.Debug.WriteLine(string.Format("Start Time Offset - {0}", StartTimeOffset));
+            _frameMediaPlayer = mediaPlayer;
             UpdateAllProperty();
         }
 
@@ -70,19 +72,19 @@ namespace SubtitleEditor.UWP.Controls.ViewModels
 
         public void UpdatePosition()
         {
-            if (_frameMediaPlayer.PlaybackSession.Position - StartTimeOffset <= TimeSpan.Zero)
+            if (_frameMediaPlayer.PlaybackSession.Position <= TimeSpan.Zero)
             {
                 Position = TimeSpan.Zero;
             }
             else
             {
-                Position = _frameMediaPlayer.PlaybackSession.Position - StartTimeOffset;
+                Position = _frameMediaPlayer.Position;
             }
         }
 
         public void UpdateDuration()
         {
-            Duration = _frameMediaPlayer.PlaybackSession.NaturalDuration;
+            Duration = _frameMediaPlayer.CorrectedDuration;
         }
 
         public void OnPropertyChanged([CallerMemberName] string propertyName = null)
@@ -100,17 +102,19 @@ namespace SubtitleEditor.UWP.Controls.ViewModels
         }
         public object Convert(object value, Type targetType, object parameter, string language)
         {
-            TransportValueType transportValueType = (TransportValueType)parameter;
-            TimeSpan timeSpan = (TimeSpan)value;
+            //TransportValueType transportValueType = (TransportValueType)parameter;
+            //TimeSpan timeSpan = (TimeSpan)value;
 
-            if (transportValueType == TransportValueType.Time)
-            {
-                return timeSpan.ToString(@"hh\:mm\:ss\,fff");
-            }
-            else
-            {
-                return System.Convert.ToInt32(timeSpan.TotalSeconds * FrameRate);
-            }
+            //if (transportValueType == TransportValueType.Time)
+            //{
+            //    return timeSpan.ToString(@"hh\:mm\:ss\,fff");
+            //}
+            //else
+            //{
+            //    return System.Convert.ToInt32(timeSpan.TotalSeconds * FrameRate);
+            //}
+
+            return "fuck";
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, string language)
@@ -122,10 +126,8 @@ namespace SubtitleEditor.UWP.Controls.ViewModels
     public class MediaSliderValueFormatter : IValueConverter
     {
         public double FrameRate { set; get; }
-        public TimeSpan InitialOffset { set; get; }
-        public MediaSliderValueFormatter(double fps, TimeSpan initialOffset)
+        public MediaSliderValueFormatter(double fps)
         {
-            InitialOffset = initialOffset;
             FrameRate = fps;
         }
 
@@ -146,12 +148,12 @@ namespace SubtitleEditor.UWP.Controls.ViewModels
         public object ConvertBack(object value, Type targetType, object parameter, string language)
         {
             double sliderValue = (double)value;
-            TimeSpan timeSpan = new TimeSpan(System.Convert.ToInt64(sliderValue / FrameRate * 10000000)) + InitialOffset;
-            OnConvertBacked?.Invoke(this, timeSpan);
+            TimeSpan timeSpan = new TimeSpan(System.Convert.ToInt64(sliderValue / FrameRate * 10000000));
+            OnConvertBacked?.Invoke(this, (long)sliderValue);
             return timeSpan;
         }
 
-        public event TypedEventHandler<MediaSliderValueFormatter, TimeSpan> OnConvertBacked;
+        public event TypedEventHandler<MediaSliderValueFormatter, long> OnConvertBacked;
     }
 
     public class MediaSliderToolTipFormatter : IValueConverter

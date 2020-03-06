@@ -33,14 +33,13 @@ namespace SubtitleEditor.UWP.Controls
         private void DispatcherTimer_Tick(object sender, object e)
         {
             MediaPlayerViewModel.UpdatePosition();
-            System.Diagnostics.Debug.WriteLine(MediaPlayerViewModel.Position);
         }
 
         private Slider _mediaSlider;
         private AppBarButton _playButton;
         private TextBlock _endPostionBlock;
         private TextBlock _startPostionBlock;
-
+        
         protected override void OnApplyTemplate()
         {
             base.OnApplyTemplate();
@@ -89,7 +88,7 @@ namespace SubtitleEditor.UWP.Controls
             {
                 Source = MediaPlayerViewModel,
                 Path = new PropertyPath("Position"),
-                Converter = new MediaTimeSpanFormatter(FrameRate),
+                Converter = new MediaTimeSpanFormatter(FrameMediaPlayer.FrameRate),
                 ConverterParameter = ValueType
             };
 
@@ -97,7 +96,7 @@ namespace SubtitleEditor.UWP.Controls
             {
                 Source = MediaPlayerViewModel,
                 Path = new PropertyPath("Duration"),
-                Converter = new MediaTimeSpanFormatter(FrameRate),
+                Converter = new MediaTimeSpanFormatter(FrameMediaPlayer.FrameRate),
                 ConverterParameter = ValueType
             };
 
@@ -105,18 +104,18 @@ namespace SubtitleEditor.UWP.Controls
             {
                 Source = MediaPlayerViewModel,
                 Path = new PropertyPath("Duration"),
-                Converter = new MediaSliderValueFormatter(FrameRate, MediaPlayerViewModel.StartTimeOffset),
+                Converter = new MediaSliderValueFormatter(FrameMediaPlayer.FrameRate),
                 ConverterParameter = ValueType
             };
 
             System.Diagnostics.Debug.WriteLine(string.Format("Slider Max Value - {0}", _mediaSlider.Maximum));
 
-            MediaSliderValueFormatter mediaSliderValueFormatter = new MediaSliderValueFormatter(FrameRate, MediaPlayerViewModel.StartTimeOffset);
+            MediaSliderValueFormatter mediaSliderValueFormatter = new MediaSliderValueFormatter(FrameMediaPlayer.FrameRate);
             mediaSliderValueFormatter.OnConvertBacked += ((formatter, timeSpan) =>
             {
                 if (MediaPlayer != null)
                 {
-                    FrameMediaPlayer.PlaybackSession.Position = timeSpan;
+                    FrameMediaPlayer.CurrentFrame = timeSpan;
                 }
             });
             Binding sliderValueBinding = new Binding
@@ -128,10 +127,19 @@ namespace SubtitleEditor.UWP.Controls
                 ConverterParameter = ValueType
             };
 
-            _startPostionBlock.SetBinding(TextBlock.TextProperty, startBlockBinding);
-            _endPostionBlock.SetBinding(TextBlock.TextProperty, endBlockBinding);
-            _mediaSlider.SetBinding(Slider.MaximumProperty, sliderMaxValueBinding);
-            _mediaSlider.SetBinding(Slider.ValueProperty, sliderValueBinding);
+            if(_startPostionBlock != null)
+            {
+                _startPostionBlock.SetBinding(TextBlock.TextProperty, startBlockBinding);
+            }
+            if(_endPostionBlock != null)
+            {
+                _endPostionBlock.SetBinding(TextBlock.TextProperty, endBlockBinding);
+            }
+            if(_mediaSlider != null)
+            {
+                _mediaSlider.SetBinding(Slider.MaximumProperty, sliderMaxValueBinding);
+                _mediaSlider.SetBinding(Slider.ValueProperty, sliderValueBinding);
+            }
         }
 
         private MediaPlayerViewModel MediaPlayerViewModel { set; get; } = new MediaPlayerViewModel();
@@ -178,21 +186,30 @@ namespace SubtitleEditor.UWP.Controls
                 case MediaPlaybackState.Playing:
                     await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
                     {
-                        _playButton.Icon = new SymbolIcon(Symbol.Pause);
+                        if(_playButton != null)
+                        {
+                            _playButton.Icon = new SymbolIcon(Symbol.Pause);
+                        }
                         dispatcherTimer.Start();
                     });
                     break;
                 case MediaPlaybackState.Paused:
                     await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
                     {
-                        _playButton.Icon = new SymbolIcon(Symbol.Play);
+                        if(_playButton != null)
+                        {
+                            _playButton.Icon = new SymbolIcon(Symbol.Play);
+                        }
                         dispatcherTimer.Stop();
                     });
                     break;
                 case MediaPlaybackState.None:
                     await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
                     {
-                        _playButton.Icon = new SymbolIcon(Symbol.Play);
+                        if(_playButton != null)
+                        {
+                            _playButton.Icon = new SymbolIcon(Symbol.Play);
+                        }
                         dispatcherTimer.Stop();
                     });
                     break;
@@ -203,8 +220,9 @@ namespace SubtitleEditor.UWP.Controls
         {
             await Dispatcher.RunAsync(CoreDispatcherPriority.Normal ,() =>
             {
-                MediaPlayerViewModel.LoadMediaPlayer(sender);
                 BindingViewModel();
+                MediaPlayerViewModel.LoadMediaPlayer(sender);
+                System.Diagnostics.Debug.WriteLine("Media Opened");
             });
         }
 
@@ -214,7 +232,6 @@ namespace SubtitleEditor.UWP.Controls
         }
 
         public enum TransportValueType { Time, Frame }
-        private TransportValueType valueType;
         public TransportValueType ValueType
         {
             get { return (TransportValueType)GetValue(ValueTypeProperty); }
@@ -228,7 +245,6 @@ namespace SubtitleEditor.UWP.Controls
         {
             var transportControl = d as FramedMediaTransportControls;
             TransportValueType valueType = (TransportValueType)e.NewValue;
-            transportControl.valueType = valueType;
         }
         public double FrameRate
         {

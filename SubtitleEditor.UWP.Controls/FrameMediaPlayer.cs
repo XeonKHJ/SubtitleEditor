@@ -4,14 +4,16 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Windows.Foundation;
+using Windows.Graphics.DirectX.Direct3D11;
 using Windows.Media.Core;
 using Windows.Media.MediaProperties;
 using Windows.Media.Playback;
 using Windows.Storage;
+using Windows.Storage.Streams;
 
 namespace SubtitleEditor.UWP.Controls
 {
-    public class FrameMediaPlayer
+    public class FrameMediaPlayer : IDisposable
     {
         /// <summary>
         /// 从文件构造该类
@@ -22,13 +24,17 @@ namespace SubtitleEditor.UWP.Controls
         {
             var source = MediaSource.CreateFromStorageFile(mediaFile);
             FrameMediaPlayer frameMediaPlayer = new FrameMediaPlayer(source);
-            await frameMediaPlayer.CalculateFrameRateAsync(mediaFile);
+            await frameMediaPlayer.CalculateFrameRateFromFileAsync(mediaFile).ConfigureAwait(false);
             return frameMediaPlayer;
         }
 
         public FrameMediaPlayer()
         {
-            MediaPlayer = new MediaPlayer();
+            MediaPlayer = new MediaPlayer()
+            {
+                IsVideoFrameServerEnabled = true
+            };
+            RegisterMediaPlayerEvent();
         }
         private FrameMediaPlayer(IMediaPlaybackSource source)
         {
@@ -36,12 +42,31 @@ namespace SubtitleEditor.UWP.Controls
             MediaPlayer.Source = source;
         }
 
+        /// <summary>
+        /// 从文件加载媒体，如之前有加载媒体，则会将其关闭。
+        /// </summary>
+        /// <param name="mediaFile"></param>
+        /// <returns></returns>
+        public async Task LoadFileAsync(IStorageFile mediaFile)
+        {
+            await CalculateFrameRateFromFileAsync(mediaFile).ConfigureAwait(false);
+            Source = MediaSource.CreateFromStorageFile(mediaFile);
+        }
+
+        public async Task LoadStreamAsync(IRandomAccessStream stream, string contentType)
+        {
+            await CalculateFrameRateFromStreamAsync(stream).ConfigureAwait(false);
+            Source = MediaSource.CreateFromStream(stream, contentType);
+        }
+
+        private MediaSource _mediaSource;
         public IMediaPlaybackSource Source
         {
-            set
+            private set
             {
-                IsOpened = false;   
+                IsOpened = false;
                 MediaPlayer.Source = value;
+                _mediaSource = value as MediaSource;
             }
             get
             {
@@ -49,15 +74,9 @@ namespace SubtitleEditor.UWP.Controls
             }
         }
 
-        private void UnregisterMediaPlayerEvent()
-        {
-            MediaPlayer.VideoFrameAvailable -= MediaPlayer_VideoFrameAvailable;
-            MediaPlayer.MediaOpened -= MediaPlayer_MediaOpened;
-        }
-
         private void MediaPlayer_VideoFrameAvailable(MediaPlayer sender, object args)
         {
-            throw new NotImplementedException();
+            VideoFrameAvailable?.Invoke(this, args);
         }
 
         public TimeSpan CorrectedPosition
@@ -75,7 +94,7 @@ namespace SubtitleEditor.UWP.Controls
         {
             get
             {
-                return TimeSpan.FromSeconds(CurrentFrame / FrameRate);
+                return TimeSpan.FromSeconds(FrameCounts / FrameRate);
             }
         }
 
@@ -99,6 +118,13 @@ namespace SubtitleEditor.UWP.Controls
             {
                 return PlaybackSession.Position - StartOffset;
             }
+            private set
+            {
+                if (value + StartOffset < Duration)
+                {
+                    PlaybackSession.Position = value + StartOffset;
+                }
+            }
         }
         public MediaPlayer MediaPlayer { get; private set; } = new MediaPlayer();
         public MediaPlaybackSession PlaybackSession { get { return MediaPlayer.PlaybackSession; } }
@@ -109,32 +135,77 @@ namespace SubtitleEditor.UWP.Controls
         {
             get
             {
-                return (long)(Position.Seconds / FrameRate);
+                return (long)Math.Round(Position.TotalSeconds / FrameRate);
             }
             set
             {
-                ;
+                //计算时间
+                Position = TimeSpan.FromSeconds(value / FrameRate);
             }
         }
 
+        public long FrameCounts
+        {
+            get
+            {
+                return (long)(Duration.TotalSeconds * FrameRate);
+            }
+        }
+
+        /// <summary>
+        /// 播放媒体
+        /// </summary>
         public void Play()
         {
             MediaPlayer.Play();
         }
+
+        /// <summary>
+        /// 暂停媒体
+        /// </summary>
         public void Pause()
         {
             MediaPlayer.Pause();
         }
 
-        public void StepBackwardOneFrame()
+        public void Close()
         {
-            var currentPosition = CurrentFrame;
+            if (_mediaSource != null)
+            {
+                var oldMediaPlayer = MediaPlayer;
+                oldMediaPlayer.VideoFrameAvailable -= MediaPlayer_VideoFrameAvailable;
+
+                //关掉视频源
+                _mediaSource.Dispose();
+                _mediaSource = null;
+
+                //新建MediaPlayer来取代之前的MediaPlayer
+                MediaPlayer = new MediaPlayer()
+                {
+                    IsVideoFrameServerEnabled = true
+                };
+                RegisterMediaPlayerEvent();
+
+                //关闭旧播放器
+                oldMediaPlayer.Dispose();
+                CurrentFrame = 0;
+            }
+        }
+        /// <summary>
+        /// 将当前视频帧复制到Direct3DSurface目标。
+        /// </summary>
+        /// <param name="destination"></param>
+        public void CopyFrameToVideoSurface(IDirect3DSurface destination)
+        {
+            MediaPlayer.CopyFrameToVideoSurface(destination);
+
         }
 
         private void RegisterMediaPlayerEvent()
         {
             MediaPlayer.MediaOpened += MediaPlayer_MediaOpened;
             MediaPlayer.CurrentStateChanged += MediaPlayer_CurrentStateChanged;
+            MediaPlayer.VideoFrameAvailable += CountingStartTimeOffset;
         }
 
         private void MediaPlayer_CurrentStateChanged(MediaPlayer sender, object args)
@@ -144,46 +215,84 @@ namespace SubtitleEditor.UWP.Controls
 
         private void MediaPlayer_MediaOpened(MediaPlayer sender, object args)
         {
-            StartOffset = sender.PlaybackSession.Position;
+            MediaPlayer.VideoFrameAvailable -= MediaPlayer_VideoFrameAvailable;
+
+            isInitialReady = false;
             //等待起始位移时间计算完成
             StartCountingOffset();
 
+            System.Diagnostics.Debug.WriteLine(string.Format("Frame Counts: {0}", FrameCounts));
+            System.Diagnostics.Debug.WriteLine(string.Format("Fixed Duration: {0}", CorrectedDuration));
+
+            MediaPlayer.VideoFrameAvailable += MediaPlayer_VideoFrameAvailable;
             MediaOpened?.Invoke(this, null);
         }
 
 
         private void StartCountingOffset()
         {
-            MediaPlayer.VideoFrameAvailable += CountingStartTimeOffset;
-
-            while (isInitialReady) ;
+            while (!isInitialReady) ;
             renderedCounts = 0;
-            isInitialReady = false;
             System.Diagnostics.Debug.WriteLine(string.Format("StartCountingOffset: {0}", StartOffset));
-
-            MediaPlayer.VideoFrameAvailable -= CountingStartTimeOffset;
         }
 
         int renderedCounts = 0;
         bool isInitialReady = false;
         private void CountingStartTimeOffset(MediaPlayer sender, object args)
         {
-            ++renderedCounts;
-            if (renderedCounts > 2)
+            if (!isInitialReady)
             {
-                StartOffset = sender.PlaybackSession.Position;
-                MediaPlayer.VideoFrameAvailable -= MediaPlayer_VideoFrameAvailable;
-                renderedCounts = 0;
+                ++renderedCounts;
+                if (renderedCounts > 2)
+                {
+                    StartOffset = sender.PlaybackSession.Position;
+                    renderedCounts = 0;
+                    isInitialReady = true;
+                }
             }
         }
 
-        private async Task CalculateFrameRateAsync(IStorageFile file)
+        private async Task CalculateFrameRateFromFileAsync(IStorageFile file)
         {
             MediaEncodingProfile profile = await MediaEncodingProfile.CreateFromFileAsync(file);
-            FrameRate = (double)profile.Video.FrameRate.Numerator / (double)profile.Video.FrameRate.Denominator;
+            FrameRate = (double)profile.Video.FrameRate.Numerator / profile.Video.FrameRate.Denominator;
+        }
+
+        private async Task CalculateFrameRateFromStreamAsync(IRandomAccessStream stream)
+        {
+            MediaEncodingProfile profile = await MediaEncodingProfile.CreateFromStreamAsync(stream);
+            FrameRate = (double)profile.Video.FrameRate.Numerator / profile.Video.FrameRate.Denominator;
+        }
+
+        /// <summary>
+        /// 释放该媒体播放器，包括绑定在该播放器中的媒体流。
+        /// </summary>
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                if (MediaPlayer.Source != null)
+                {
+                    MediaPlayer.Dispose();
+                    MediaPlayer = null;
+                }
+                if(_mediaSource != null)
+                {
+                    _mediaSource.Dispose();
+                    _mediaSource = null;
+                }
+                
+            }
         }
 
         public event TypedEventHandler<FrameMediaPlayer, object> CurrentStateChanged;
         public event TypedEventHandler<FrameMediaPlayer, object> MediaOpened;
+        public event TypedEventHandler<FrameMediaPlayer, object> VideoFrameAvailable;
     }
 }

@@ -46,7 +46,7 @@
                     <ColumnDefinition Width="auto"></ColumnDefinition>
                     <ColumnDefinition Width="*"></ColumnDefinition>
                 </Grid.ColumnDefinitions>
-                <Image Grid.Row="3" x:Name="VideoFrameServer" Grid.Column="0" Visibility="Collapsed"></Image>
+                <Image Grid.Row="3" x:Name="VideoFrameServer" Grid.Column="0" Visibility="Visible"></Image>
                 <MediaPlayerElement x:Name="VideoElement" Grid.Column="0" 
                                     Visibility="Collapsed" AreTransportControlsEnabled="True" AutoPlay="False">
                     <MediaPlayerElement.TransportControls>
@@ -65,7 +65,7 @@
             </Grid>
             <local2:FramedMediaTransportControls x:Name="FramedTransportControls"
                 RelativePanel.AlignBottomWithPanel="True" RelativePanel.AlignLeftWithPanel="True" RelativePanel.AlignRightWithPanel="True"
-                                                      Visibility="Visible"></local2:FramedMediaTransportControls>
+                                                      Visibility="Collapsed" FrameMediaPlayer="{x:Bind mediaPlayer}"></local2:FramedMediaTransportControls>
         </RelativePanel>
         <controls:GridSplitter Grid.Row="2" Height="2" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"></controls:GridSplitter>
         <controls:DataGrid x:Name="DialoguesGrid" HorizontalAlignment="Stretch" AutoGenerateColumns="False"
@@ -74,7 +74,7 @@
                            VerticalScrollBarVisibility="Visible"
                            HorizontalScrollBarVisibility="Visible"
                            SelectionChanged="DialoguesGrid_SelectionChanged"
-                           Visibility="Collapsed">
+                           Visibility="Visible">
             <controls:DataGrid.Columns>
                 <controls:DataGridTextColumn Header="序号" Binding="{Binding No}" x:DefaultBindMode="TwoWay"></controls:DataGridTextColumn>
                 <controls:DataGridTextColumn Header="开始时间" x:DefaultBindMode="TwoWay" Binding="{Binding From, Converter={StaticResource StringFormatterValueConverter}}"></controls:DataGridTextColumn>
