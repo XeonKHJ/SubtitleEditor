@@ -47,6 +47,7 @@
                     <ColumnDefinition Width="*"></ColumnDefinition>
                 </Grid.ColumnDefinitions>
                 <Image Grid.Row="3" x:Name="VideoFrameServer" Grid.Column="0" Visibility="Visible"></Image>
+                <controls:Loading></controls:Loading>
                 <MediaPlayerElement x:Name="VideoElement" Grid.Column="0" 
                                     Visibility="Collapsed" AreTransportControlsEnabled="True" AutoPlay="False">
                     <MediaPlayerElement.TransportControls>

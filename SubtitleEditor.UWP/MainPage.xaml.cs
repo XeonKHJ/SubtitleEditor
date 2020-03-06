@@ -106,18 +106,18 @@ namespace SubtitleEditor.UWP
                 VideoFrameServer.Source = canvasImageSource;
                 inputBitmap = CanvasBitmap.CreateFromSoftwareBitmap(canvasDevice, frameServerDest);
             });
+            isReadtyToDraw = true;
         }
 
         private CanvasImageSource canvasImageSource;
         private readonly CanvasDevice canvasDevice = CanvasDevice.GetSharedDevice();
         private SoftwareBitmap frameServerDest;
         private CanvasBitmap inputBitmap;
+        private bool isReadtyToDraw = false;
         private async void MediaPlayer_VideoFrameAvailableAsync(FrameMediaPlayer sender, object args)
         {
-            if(inputBitmap != null)
+            if(isReadtyToDraw)
             {
-                Debug.WriteLine(canvasImageSource.AlphaMode);
-                Debug.WriteLine(Windows.UI.Colors.Black);
                 mediaPlayer.CopyFrameToVideoSurface(inputBitmap);
                 await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
                 {
