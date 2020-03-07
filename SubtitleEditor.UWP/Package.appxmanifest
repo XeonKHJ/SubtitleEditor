@@ -49,11 +49,11 @@
           </uap:FileOpenPicker>
         </uap:Extension>
         <uap:Extension Category="windows.fileTypeAssociation">
-          <uap:FileTypeAssociation Name="subtitleassociation">
+          <uap:FileTypeAssociation Name="subtitlefile">
             <uap:SupportedFileTypes>
               <uap:FileType ContentType="text/srt">.srt</uap:FileType>
             </uap:SupportedFileTypes>
-            <uap:DisplayName>字幕编辑器</uap:DisplayName>
+            <uap:DisplayName>字幕文件</uap:DisplayName>
           </uap:FileTypeAssociation>
         </uap:Extension>
       </Extensions>
