@@ -123,7 +123,7 @@
     <Compile Include="TestPage.xaml.cs">
       <DependentUpon>TestPage.xaml</DependentUpon>
     </Compile>
-    <Compile Include="ViewModels\DialoguesViewModel.cs" />
+    <Compile Include="ViewModels\DialoguesViewModelCollection.cs" />
     <Compile Include="MainPage.xaml.cs">
       <DependentUpon>MainPage.xaml</DependentUpon>
     </Compile>

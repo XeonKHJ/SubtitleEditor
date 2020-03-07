@@ -47,8 +47,8 @@ namespace SubtitleEditor.UWP
             mediaPlayer.VideoFrameAvailable += MediaPlayer_VideoFrameAvailableAsync;
         }
 
-        public Subtitle Subtitle;
-        public DialoguesViewModel DialoguesViewModel = new DialoguesViewModel();
+        public Subtitle Subtitle { set; get; }
+        public DialoguesViewModelCollection DialoguesViewModel { get; } = new DialoguesViewModelCollection();
         private async void OpenButton_ClickAsync(object sender, RoutedEventArgs e)
         {
             var picker = new FileOpenPicker
@@ -65,7 +65,6 @@ namespace SubtitleEditor.UWP
         private readonly FrameMediaPlayer mediaPlayer = new FrameMediaPlayer();
         private async void OpenVideoFile(StorageFile file)
         {
-
             if (file != null)
             {
                 //关掉前一个视频
@@ -90,6 +89,8 @@ namespace SubtitleEditor.UWP
                     {
                         case 0xC00D36C4:
                             break;
+                        default:
+                            throw new Exception();
                     }
                 }
             }
@@ -281,14 +282,6 @@ namespace SubtitleEditor.UWP
 
         private void GoToButton_Click(object sender, RoutedEventArgs e)
         {
-            try
-            {
-
-            }
-            catch (Exception)
-            {
-
-            }
         }
 
         private async void SaveButton_Click(object sender, RoutedEventArgs e)

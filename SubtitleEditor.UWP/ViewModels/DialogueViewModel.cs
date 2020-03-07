@@ -20,7 +20,7 @@ namespace SubtitleEditor.UWP.ViewModels
             }
             else
             {
-                throw new NullReferenceException("Dialogue不能为空。");
+                throw new ArgumentNullException(nameof(dialogue));
             }
         }
 

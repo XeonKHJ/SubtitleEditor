@@ -9,9 +9,9 @@ using SubtitleEditor.Subtitles;
 
 namespace SubtitleEditor.UWP.ViewModels
 {
-    public class DialoguesViewModel : ObservableCollection<DialogueViewModel>
+    public class DialoguesViewModelCollection : ObservableCollection<DialogueViewModel>
     {
-        public DialoguesViewModel()
+        public DialoguesViewModelCollection()
         {
             this.CollectionChanged += DialoguesViewModel_CollectionChanged;
         }
@@ -21,7 +21,7 @@ namespace SubtitleEditor.UWP.ViewModels
             System.Diagnostics.Debug.WriteLine("fuck me!");
         }
 
-        public DialoguesViewModel(Subtitle subtitle)
+        public DialoguesViewModelCollection(Subtitle subtitle)
         {
             LoadSubtitle(subtitle);
         }
@@ -29,11 +29,18 @@ namespace SubtitleEditor.UWP.ViewModels
         public void LoadSubtitle(Subtitle subtitle)
         {
             Items.Clear();
-            foreach (var d in subtitle.Dialogues)
+            if(subtitle != null)
             {
-                Items.Add(new DialogueViewModel(d));
+                foreach (var d in subtitle.Dialogues)
+                {
+                    Items.Add(new DialogueViewModel(d));
+                }
+                OnCollectionChanged(new System.Collections.Specialized.NotifyCollectionChangedEventArgs(System.Collections.Specialized.NotifyCollectionChangedAction.Reset));
             }
-            OnCollectionChanged(new System.Collections.Specialized.NotifyCollectionChangedEventArgs(System.Collections.Specialized.NotifyCollectionChangedAction.Reset));
+            else
+            {
+                throw new ArgumentNullException(nameof(subtitle));
+            }
         }
     }
 }
