@@ -27,7 +27,9 @@ using Microsoft.Graphics.Canvas.UI.Xaml;
 using Windows.Graphics.Display;
 using Windows.Media.MediaProperties;
 using Windows.UI.Core;
+using Windows.Storage.Pickers;
 using SubtitleEditor.UWP.Controls;
+using System.Text;
 
 // https://go.microsoft.com/fwlink/?LinkId=402352&clcid=0x804 上介绍了“空白页”项模板
 
@@ -45,19 +47,17 @@ namespace SubtitleEditor.UWP
             mediaPlayer.VideoFrameAvailable += MediaPlayer_VideoFrameAvailableAsync;
         }
 
-        private StorageFile _file;
         public Subtitle Subtitle;
         public DialoguesViewModel DialoguesViewModel = new DialoguesViewModel();
         private async void OpenButton_ClickAsync(object sender, RoutedEventArgs e)
         {
-            var picker = new Windows.Storage.Pickers.FileOpenPicker
+            var picker = new FileOpenPicker
             {
-                ViewMode = Windows.Storage.Pickers.PickerViewMode.Thumbnail
+                ViewMode = PickerViewMode.Thumbnail
             };
             picker.FileTypeFilter.Add(".srt");
 
             StorageFile file = await picker.PickSingleFileAsync();
-
 
             OpenSubFile(file);
         }
@@ -71,17 +71,27 @@ namespace SubtitleEditor.UWP
                 //关掉前一个视频
                 CloseVideo();
 
-                _file = file;
-
-                await mediaPlayer.LoadFileAsync(file);
-
-                var path = file.Path;
-
-                await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
+                try
                 {
-                    FramedTransportControls.FrameMediaPlayer = mediaPlayer;
-                    EnableVideoControls();
-                });
+                    await mediaPlayer.LoadFileAsync(file).ConfigureAwait(true);
+
+
+                    var path = file.Path;
+
+                    await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
+                    {
+                        FramedTransportControls.FrameMediaPlayer = mediaPlayer;
+                        EnableVideoControls();
+                    });
+                }
+                catch(Exception exception)
+                {
+                    switch((uint)exception.HResult)
+                    {
+                        case 0xC00D36C4:
+                            break;
+                    }
+                }
             }
         }
 
@@ -96,7 +106,7 @@ namespace SubtitleEditor.UWP
             int width = (int)sender.PlaybackSession.NaturalVideoWidth;
             int height = (int)sender.PlaybackSession.NaturalVideoHeight;
 
-            System.Diagnostics.Debug.WriteLine("MediaPlayer_MediaOpenedAsync - " + sender.StartOffset);
+            Debug.WriteLine("MediaPlayer_MediaOpenedAsync - " + sender.StartOffset);
             FrameServerSetup(width, height);
         }
 
@@ -104,12 +114,28 @@ namespace SubtitleEditor.UWP
         {
             isReadtyToDraw = false;
             frameServerDest = new SoftwareBitmap(BitmapPixelFormat.Bgra8, width, height, BitmapAlphaMode.Ignore);
-            await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
+
+            try
+            {
+                await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
                 {
                     canvasImageSource = new CanvasImageSource(canvasDevice, width, height, DisplayInformation.GetForCurrentView().LogicalDpi);
                     VideoFrameServer.Source = canvasImageSource;
                     inputBitmap = CanvasBitmap.CreateFromSoftwareBitmap(canvasDevice, frameServerDest);
                 });
+            }
+            catch(Exception exception)
+            {
+                switch ((uint)exception.HResult)
+                {
+                    case 0x887a0005:
+                        CloseVideo();
+                        break;
+                    default:
+                        throw new Exception();
+                }
+            }
+
             isReadtyToDraw = true;
         }
 
@@ -140,18 +166,34 @@ namespace SubtitleEditor.UWP
                             }
                         }
                     }
-                    catch(Exception exception)
+                    catch (Exception exception)
                     {
-                        if((uint)exception.HResult == 0x802b0020)
+                        switch((uint)exception.HResult)
                         {
-                            ;
+                            case 0x802B0020:
+                                FrameServerSetup((int)sender.PlaybackSession.NaturalVideoWidth, (int)sender.PlaybackSession.NaturalVideoHeight);
+                                break;
+                            default:
+                                throw new Exception();
                         }
+                        Debug.WriteLine(exception.Message);
                     }
                 });
             }
 
         }
 
+        protected override void OnNavigatedTo(NavigationEventArgs e)
+        {
+            base.OnNavigatedTo(e);
+            if(e != null)
+            {
+                if(e.Parameter is StorageFile file)
+                {
+                    OpenSubFile(file);
+                }
+            }
+        }
         private void CloseVideo()
         {
             if (mediaPlayer != null)
@@ -178,6 +220,7 @@ namespace SubtitleEditor.UWP
             FramedTransportControls.Visibility = Visibility.Collapsed;
         }
 
+        private StorageFile openedFile;
         private async void OpenSubFile(StorageFile file)
         {
             if (file != null)
@@ -185,30 +228,24 @@ namespace SubtitleEditor.UWP
                 using (var stream = await file.OpenReadAsync())
                 using (var streamReader = new StreamReader(stream.AsStreamForRead(), true))
                 {
-                    //var contentBytes = new byte[stream.Size];
-                    //await stream.AsStreamForRead().ReadAsync(contentBytes, 0, (int)stream.Size).ConfigureAwait(false);
+                    openedFile = file;
+
                     var content = await streamReader.ReadToEndAsync().ConfigureAwait(true);
-
-                    //检测编码
-                    //var encodings = System.Text.Encoding.GetEncodings();
-                    //foreach(var encoding in encodings)
-                    //{
-                    //    Debug.WriteLine(encoding.CodePage);
-
-                    //}
-
                     SubRipParser subRipParser = new SubRipParser();
                     Subtitle = subRipParser.LoadFromString(content);
                     DialoguesViewModel.LoadSubtitle(Subtitle);
+
+                    //修改选中编码
+                    EncodingsBox.SelectedItem = streamReader.CurrentEncoding.EncodingName;
                 }
             }
         }
 
         private List<string> Encodings
-        { 
+        {
             get
             {
-                var encodingInfos = System.Text.Encoding.GetEncodings().ToList();
+                var encodingInfos = Encoding.GetEncodings().ToList();
                 return (from encoding in encodingInfos
                         select encoding.DisplayName).ToList();
             }
@@ -246,7 +283,7 @@ namespace SubtitleEditor.UWP
         {
             try
             {
-                
+
             }
             catch (Exception)
             {
@@ -254,14 +291,35 @@ namespace SubtitleEditor.UWP
             }
         }
 
-        private void SaveButton_Click(object sender, RoutedEventArgs e)
+        private async void SaveButton_Click(object sender, RoutedEventArgs e)
         {
+            if (Subtitle != null)
+            {
+                var picker = new FileSavePicker()
+                {
+                    SuggestedStartLocation = PickerLocationId.VideosLibrary,
+                    SuggestedFileName = "新建字幕文件"
+                };
+                if (openedFile != null)
+                {
+                    picker.SuggestedFileName = openedFile.DisplayName;
+                }
 
+                picker.FileTypeChoices.Add("SubRip", new List<string>() { ".srt" });
+                picker.FileTypeChoices.Add("Advanced SubStation Alpha", new List<string>() { ".ass", ".ssa" });
+                var file = await picker.PickSaveFileAsync();
+                if (file != null)
+                {
+                    SubRipParser subRipParser = new SubRipParser();
+                    var subtitleString = subRipParser.SaveToString(Subtitle);
+                    await FileIO.WriteTextAsync(file, subtitleString, Windows.Storage.Streams.UnicodeEncoding.Utf8);
+                }
+            }
         }
 
         private void TimeButton_Checked(object sender, RoutedEventArgs e)
         {
-            if(FramedTransportControls != null)
+            if (FramedTransportControls != null)
             {
                 FramedTransportControls.ValueType = FramedMediaTransportControls.TransportValueType.Time;
             }
@@ -269,11 +327,11 @@ namespace SubtitleEditor.UWP
 
         private void FrameButton_Checked(object sender, RoutedEventArgs e)
         {
-            if(FramedTransportControls != null)
+            if (FramedTransportControls != null)
             {
                 FramedTransportControls.ValueType = FramedMediaTransportControls.TransportValueType.Frame;
             }
-            
+
         }
     }
 }

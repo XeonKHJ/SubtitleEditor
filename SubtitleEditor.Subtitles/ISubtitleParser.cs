@@ -12,8 +12,8 @@ namespace SubtitleEditor.Subtitles
         Subtitle LoadFromString(string subString);
         string SaveToString(Subtitle subtitle);
 
-        void SaveToFile(Subtitle subtitle, string filePath);
+        void SaveToFile(Subtitle subtitle, string filePath, Encoding encoding);
 
-        Task SaveToFileAsync(Subtitle subtitle, string filePath);
+        Task SaveToFileAsync(Subtitle subtitle, string filePath, Encoding encoding);
     }
 }

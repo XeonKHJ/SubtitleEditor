@@ -11,10 +11,17 @@ namespace SubtitleEditor.UWP.ViewModels
     {
         public DialogueViewModel(Dialogue dialogue)
         {
-            No = dialogue.No;
-            From = dialogue.From;
-            To = dialogue.To;
-            Line = dialogue.Line;
+            if(dialogue != null)
+            {
+                No = dialogue.No;
+                From = dialogue.From;
+                To = dialogue.To;
+                Line = dialogue.Line;
+            }
+            else
+            {
+                throw new NullReferenceException("Dialogue不能为空。");
+            }
         }
 
         public int No { set; get; }

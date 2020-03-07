@@ -113,8 +113,6 @@ namespace SubtitleEditor.UWP.Controls
                 ConverterParameter = ValueType
             };
 
-            System.Diagnostics.Debug.WriteLine(string.Format("Slider Max Value - {0}", _mediaSlider.Maximum));
-
             MediaSliderValueFormatter mediaSliderValueFormatter = new MediaSliderValueFormatter(FrameMediaPlayer.FrameRate);
             mediaSliderValueFormatter.OnConvertBacked += ((formatter, timeSpan) =>
             {

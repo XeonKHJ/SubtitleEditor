@@ -4,6 +4,7 @@ using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using System.Globalization;
 
 namespace SubtitleEditor.Subtitles
 {
@@ -56,19 +57,50 @@ namespace SubtitleEditor.Subtitles
 
             return subtitle;
         }
-        public void SaveToFile(Subtitle subtitle, string filePath)
+        public async void SaveToFile(Subtitle subtitle, string filePath, Encoding encoding = null)
         {
-            throw new NotImplementedException();
+            await SaveToFileAsync(subtitle, filePath, encoding).ConfigureAwait(false);
         }
 
-        public Task SaveToFileAsync(Subtitle subtitle, string filePath)
+        public async Task SaveToFileAsync(Subtitle subtitle, string filePath, Encoding encoding = null)
         {
-            throw new NotImplementedException();
+            using (var stream = File.OpenWrite(filePath))
+            {
+                var subtitleString = SaveToString(subtitle);
+                byte[] encodedBytes;
+                if(encoding != null)
+                {
+                    encodedBytes = encoding.GetBytes(subtitleString);
+                }
+                else
+                {
+                    encodedBytes = Encoding.UTF8.GetBytes(subtitleString);
+                }
+
+                await stream.WriteAsync(encodedBytes, 0, encodedBytes.Length).ConfigureAwait(false);
+                await stream.FlushAsync().ConfigureAwait(false);
+            }
         }
 
         public string SaveToString(Subtitle subtitle)
         {
-            throw new NotImplementedException();
+            string subtitleString = "";
+            foreach (var dialogue in subtitle.Dialogues)
+            {
+                string from = dialogue.From.ToString(@"hh\:mm\:ss\,fff", CultureInfo.CurrentCulture);
+                string to = dialogue.To.ToString(@"hh\:mm\:ss\,fff", CultureInfo.CurrentCulture);
+                string arrowWithTwoSpace = " --> ";
+                string no = dialogue.No.ToString(CultureInfo.CurrentCulture);
+                string line = dialogue.Line;
+
+                string dialogueString = no + Environment.NewLine +
+                                        to + arrowWithTwoSpace + from + Environment.NewLine +
+                                        line + Environment.NewLine + 
+                                        Environment.NewLine;
+                subtitleString += dialogueString;
+            }
+
+            return subtitleString;
         }
     }
 }

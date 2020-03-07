@@ -17,12 +17,12 @@ namespace SubtitleEditor.Subtitles
             throw new NotImplementedException();
         }
 
-        public void SaveToFile(Subtitle subtitle, string filePath)
+        public void SaveToFile(Subtitle subtitle, string filePath, Encoding encoding)
         {
             throw new NotImplementedException();
         }
 
-        public Task SaveToFileAsync(Subtitle subtitle, string filePath)
+        public Task SaveToFileAsync(Subtitle subtitle, string filePath, Encoding encoding)
         {
             throw new NotImplementedException();
         }

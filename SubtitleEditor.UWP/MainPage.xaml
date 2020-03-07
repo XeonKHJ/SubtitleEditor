@@ -31,9 +31,10 @@
                     </MenuFlyoutItem.KeyboardAccelerators>
                 </MenuFlyoutItem>
                 <MenuFlyoutSubItem x:Name="OpenRecentFileItem" Text="打开最近文件"></MenuFlyoutSubItem>
-                <MenuFlyoutItem x:Name="SaveButton" Text="保存…" Click="SaveButton_Click">
+                <MenuFlyoutItem x:Name="SaveButton" Text="另存为…" Click="SaveButton_Click">
                     <MenuFlyoutItem.KeyboardAccelerators>
-                        <KeyboardAccelerator Modifiers="Control" Key="S"></KeyboardAccelerator>
+                        <KeyboardAccelerator Modifiers="Control, Shift" Key="S">
+                        </KeyboardAccelerator>
                     </MenuFlyoutItem.KeyboardAccelerators>
                 </MenuFlyoutItem>
                 <MenuFlyoutItem x:Name="ExportButton" Text="导出…"></MenuFlyoutItem>
@@ -79,7 +80,7 @@
             </Grid>
             <local2:FramedMediaTransportControls x:Name="FramedTransportControls" Margin="10, 0"
                 RelativePanel.AlignBottomWithPanel="True" RelativePanel.AlignLeftWithPanel="True" RelativePanel.AlignRightWithPanel="True"
-                                                      Visibility="Visible" ValueType="Time" FrameMediaPlayer="{x:Bind mediaPlayer}"></local2:FramedMediaTransportControls>
+                                                      Visibility="Collapsed" ValueType="Time" FrameMediaPlayer="{x:Bind mediaPlayer}"></local2:FramedMediaTransportControls>
         </RelativePanel>
         <controls:GridSplitter Grid.Row="2" Height="2" HorizontalAlignment="Stretch" VerticalAlignment="Stretch"></controls:GridSplitter>
         <controls:DataGrid x:Name="DialoguesGrid" HorizontalAlignment="Stretch" AutoGenerateColumns="False"
@@ -111,7 +112,7 @@
             </Grid.Background>
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
                 <TextBlock Text="编码：" VerticalAlignment="Center"></TextBlock>
-                <ComboBox ItemsSource="{x:Bind Encodings}">
+                <ComboBox x:Name="EncodingsBox" ItemsSource="{x:Bind Encodings}">
                 </ComboBox>
             </StackPanel>
         </Grid>

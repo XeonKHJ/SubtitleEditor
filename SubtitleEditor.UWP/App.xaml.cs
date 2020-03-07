@@ -5,9 +5,12 @@ using System.Linq;
 using System.Runtime.InteropServices.WindowsRuntime;
 using Windows.ApplicationModel;
 using Windows.ApplicationModel.Activation;
+using Windows.ApplicationModel.Core;
 using Windows.Foundation;
 using Windows.Foundation.Collections;
+using Windows.Storage;
 using Windows.UI.Core;
+using Windows.UI.ViewManagement;
 using Windows.UI.Xaml;
 using Windows.UI.Xaml.Controls;
 using Windows.UI.Xaml.Controls.Primitives;
@@ -42,6 +45,8 @@ namespace SubtitleEditor.UWP
         {
             Frame rootFrame = Window.Current.Content as Frame;
 
+            isAppLaunched = true;
+
             // 不要在窗口已包含内容时重复应用程序初始化，
             // 只需确保窗口处于活动状态
             if (rootFrame == null)
@@ -69,10 +74,17 @@ namespace SubtitleEditor.UWP
                     // 参数
                     rootFrame.Navigate(typeof(MainPage), e.Arguments);
                 }
+                else
+                {
+                    // 当再次被执行打开时，打开新窗口。
+                    OpenNewView(e.Arguments);
+                }
                 // 确保当前窗口处于活动状态
                 Window.Current.Activate();
             }
         }
+
+        private bool isAppLaunched = false;
 
         /// <summary>
         /// 导航到特定页失败时调用
@@ -98,9 +110,76 @@ namespace SubtitleEditor.UWP
             deferral.Complete();
         }
 
-        public static async void RunOnUIThread(Action action, CoreDispatcherPriority Priority = CoreDispatcherPriority.Normal) 
-        { 
-            await Windows.ApplicationModel.Core.CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(Priority, () => { action(); }); 
+        /// <summary>
+        /// 通过文件打开时
+        /// </summary>
+        /// <param name="args"></param>
+        protected override void OnFileActivated(FileActivatedEventArgs args)
+        {
+            if(args != null)
+            {
+                base.OnFileActivated(args);
+            }
+
+            if (args == null || args.Files.Count == 0)
+            {
+                isAppLaunched = true;
+
+                if (!(Window.Current.Content is Frame rootFrame))
+                {
+                    // 创建要充当导航上下文的框架，并导航到第一页
+                    rootFrame = new Frame();
+                    rootFrame.NavigationFailed += OnNavigationFailed;
+                    Window.Current.Content = rootFrame;
+                }
+
+                if (rootFrame.Content == null)
+                {
+                    rootFrame.Navigate(typeof(MainPage), null);
+                }
+                // 确保当前窗口处于活动状态
+                Window.Current.Activate();
+            }
+            else
+            {
+                var files = args.Files;
+
+                foreach (var file in files)
+                {
+                    OpenNewView(file);
+                }
+            }
+        }
+
+
+        private async void OpenNewView(object paramater)
+        {
+            CoreApplicationView currentView;
+            if (isAppLaunched)
+            {
+                currentView = CoreApplication.CreateNewView();
+            }
+            else
+            {
+                currentView = CoreApplication.GetCurrentView();
+                isAppLaunched = true;
+            }
+            int newViewId = 0;
+            await currentView.Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
+            {
+                Frame frame = new Frame();
+                frame.Navigate(typeof(MainPage), paramater);
+                Window.Current.Content = frame;
+                Window.Current.Activate();
+
+                newViewId = ApplicationView.GetForCurrentView().Id;
+            });
+            bool viewShown = await ApplicationViewSwitcher.TryShowAsStandaloneAsync(newViewId);
+        }
+
+        public static async void RunOnUIThread(Action action, CoreDispatcherPriority Priority = CoreDispatcherPriority.Normal)
+        {
+            await Windows.ApplicationModel.Core.CoreApplication.MainView.CoreWindow.Dispatcher.RunAsync(Priority, () => { action(); });
         }
 
     }
