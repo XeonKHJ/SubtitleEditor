@@ -262,18 +262,8 @@ namespace SubtitleEditor.UWP.Controls
 
             renderedCounts = 0;
             isInitialReady = false;
-            //等待起始位移时间计算完成
-            StartCountingOffset();
-
-            System.Diagnostics.Debug.WriteLine(string.Format("Frame Counts: {0}", FrameCounts));
-            System.Diagnostics.Debug.WriteLine(string.Format("Fixed Duration: {0}", CorrectedDuration));
         }
 
-
-        private void StartCountingOffset()
-        {
-            System.Diagnostics.Debug.WriteLine(string.Format("StartCountingOffset: {0}", StartOffset));
-        }
 
         int renderedCounts = 0;
         bool isInitialReady = false;
