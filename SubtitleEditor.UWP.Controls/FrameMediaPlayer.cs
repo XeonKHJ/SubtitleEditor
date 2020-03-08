@@ -11,6 +11,7 @@ using Windows.Media.MediaProperties;
 using Windows.Media.Playback;
 using Windows.Storage;
 using Windows.Storage.Streams;
+using System.Globalization;
 
 namespace SubtitleEditor.UWP.Controls
 {
@@ -141,8 +142,18 @@ namespace SubtitleEditor.UWP.Controls
             }
             set
             {
+                var frameOffset = 0.0004 * FrameRate;
+
+                double offsetSeconds = (value + frameOffset) / FrameRate;
+                double seconds = value / FrameRate;
+
+                var offsetPosition = new TimeSpan((long)(offsetSeconds * 10000000));
+                //System.Diagnostics.Debug.WriteLine(string.Format(CultureInfo.CurrentCulture, "Offset Position: {0}, OffsetFrame: {1}", TimeSpan.FromSeconds(offsetSeconds), value + frameOffset));
+                //System.Diagnostics.Debug.WriteLine(string.Format(CultureInfo.CurrentCulture, "NoOffset Position: {0}, Frame: {1}", TimeSpan.FromSeconds(seconds), value));
+                //System.Diagnostics.Debug.WriteLine(string.Format(CultureInfo.CurrentCulture, "Offset Position: {0}", offsetPosition));
+
                 //计算时间
-                Position = TimeSpan.FromSeconds((value + 0.5) / FrameRate);
+                Position = offsetPosition;
             }
         }
 
@@ -279,6 +290,7 @@ namespace SubtitleEditor.UWP.Controls
                     isInitialReady = true;
                     MediaPlayer.VideoFrameAvailable -= CountingStartTimeOffset;
                     MediaPlayer.VideoFrameAvailable += MediaPlayer_VideoFrameAvailable;
+                    MediaPlayer.IsVideoFrameServerEnabled = false;
                     MediaStatus = FrameMediaStatus.Opened;
                     MediaOpened?.Invoke(this, null);
                 }

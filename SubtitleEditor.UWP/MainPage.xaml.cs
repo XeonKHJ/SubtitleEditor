@@ -44,7 +44,7 @@ namespace SubtitleEditor.UWP
         {
             this.InitializeComponent();
             mediaPlayer.MediaOpened += MediaPlayer_MediaOpenedAsync;
-            mediaPlayer.VideoFrameAvailable += MediaPlayer_VideoFrameAvailableAsync;
+            //mediaPlayer.VideoFrameAvailable += MediaPlayer_VideoFrameAvailableAsync;
         }
 
         public Subtitle Subtitle { set; get; }
@@ -83,9 +83,9 @@ namespace SubtitleEditor.UWP
                         EnableVideoControls();
                     });
                 }
-                catch(Exception exception)
+                catch (Exception exception)
                 {
-                    switch((uint)exception.HResult)
+                    switch ((uint)exception.HResult)
                     {
                         case 0xC00D36C4:
                             break;
@@ -96,8 +96,13 @@ namespace SubtitleEditor.UWP
             }
         }
 
-        private void MediaPlayer_MediaOpenedAsync(FrameMediaPlayer sender, object args)
+        private async void MediaPlayer_MediaOpenedAsync(FrameMediaPlayer sender, object args)
         {
+            await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
+                {
+                    VideoElement.SetMediaPlayer(mediaPlayer.MediaPlayer);
+                });
+
             if (inputBitmap != null)
             {
                 var oldBitmap = inputBitmap;
@@ -108,7 +113,7 @@ namespace SubtitleEditor.UWP
             int height = (int)sender.PlaybackSession.NaturalVideoHeight;
 
             Debug.WriteLine("MediaPlayer_MediaOpenedAsync - " + sender.StartOffset);
-            FrameServerSetup(width, height);
+            //FrameServerSetup(width, height);
         }
 
         private async void FrameServerSetup(int width, int height)
@@ -125,7 +130,7 @@ namespace SubtitleEditor.UWP
                     inputBitmap = CanvasBitmap.CreateFromSoftwareBitmap(canvasDevice, frameServerDest);
                 });
             }
-            catch(Exception exception)
+            catch (Exception exception)
             {
                 switch ((uint)exception.HResult)
                 {
@@ -169,7 +174,7 @@ namespace SubtitleEditor.UWP
                     }
                     catch (Exception exception)
                     {
-                        switch((uint)exception.HResult)
+                        switch ((uint)exception.HResult)
                         {
                             case 0x802B0020:
                                 FrameServerSetup((int)sender.PlaybackSession.NaturalVideoWidth, (int)sender.PlaybackSession.NaturalVideoHeight);
@@ -187,9 +192,9 @@ namespace SubtitleEditor.UWP
         protected override void OnNavigatedTo(NavigationEventArgs e)
         {
             base.OnNavigatedTo(e);
-            if(e != null)
+            if (e != null)
             {
-                if(e.Parameter is StorageFile file)
+                if (e.Parameter is StorageFile file)
                 {
                     OpenSubFile(file);
                 }
@@ -206,8 +211,8 @@ namespace SubtitleEditor.UWP
 
         private void EnableVideoControls()
         {
-            //VideoElement.Visibility = Visibility.Visible;
-            VideoFrameServer.Visibility = Visibility.Visible;
+            VideoElement.Visibility = Visibility.Visible;
+            //VideoFrameServer.Visibility = Visibility.Visible;
             VideoElementAndDialogueBoxSplitter.Visibility = Visibility.Visible;
             FramedTransportControls.Visibility = Visibility.Visible;
         }
@@ -215,8 +220,8 @@ namespace SubtitleEditor.UWP
         private void DisableVideoControls()
         {
             VideoColumn.Width = GridLength.Auto;
-            //VideoElement.Visibility = Visibility.Collapsed;
-            VideoFrameServer.Visibility = Visibility.Collapsed;
+            VideoElement.Visibility = Visibility.Collapsed;
+            //VideoFrameServer.Visibility = Visibility.Collapsed;
             VideoElementAndDialogueBoxSplitter.Visibility = Visibility.Collapsed;
             FramedTransportControls.Visibility = Visibility.Collapsed;
         }

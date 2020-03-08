@@ -146,7 +146,7 @@ namespace SubtitleEditor.UWP.Controls
         }
 
         private MediaPlayerViewModel MediaPlayerViewModel { set; get; } = new MediaPlayerViewModel();
-        private MediaPlayer MediaPlayer { get { return FrameMediaPlayer.MediaPlayer; } }
+        public MediaPlayer MediaPlayer { get { return FrameMediaPlayer.MediaPlayer; } }
         public FrameMediaPlayer FrameMediaPlayer
         {
             get { return (FrameMediaPlayer)GetValue(MediaSourceProperty); }
@@ -240,7 +240,6 @@ namespace SubtitleEditor.UWP.Controls
             await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
             {
                 MediaPlayerViewModel.UpdatePosition();
-                System.Diagnostics.Debug.WriteLine("PlaybackSession_PositionChanged");
             });
         }
 

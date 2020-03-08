@@ -141,12 +141,15 @@ namespace SubtitleEditor.UWP.Controls.ViewModels
         public object Convert(object value, Type targetType, object parameter, string language)
         {
             TimeSpan timeSpan = (TimeSpan)value;
-            return timeSpan.TotalSeconds * FrameRate;
+            return (int)Math.Round(timeSpan.TotalSeconds * FrameRate);
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, string language)
         {
             double sliderValue = (double)value;
+
+            //System.Diagnostics.Debug.WriteLine(string.Format(CultureInfo.CurrentCulture, "Slider Value: {0}; Corrected Value: {1}", sliderValue, Math.Round(sliderValue)));
+
             TimeSpan timeSpan = new TimeSpan(System.Convert.ToInt64(sliderValue / FrameRate * 10000000));
             OnConvertBacked?.Invoke(this, (long)sliderValue);
             return timeSpan;

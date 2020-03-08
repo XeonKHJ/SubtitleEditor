@@ -58,7 +58,7 @@
                 <Image Grid.Row="3" x:Name="VideoFrameServer" Grid.Column="0" Visibility="Visible"></Image>
                 <controls:Loading></controls:Loading>
                 <MediaPlayerElement x:Name="VideoElement" Grid.Column="0" 
-                                    Visibility="Collapsed" AreTransportControlsEnabled="True" AutoPlay="False">
+                                    Visibility="Collapsed" AreTransportControlsEnabled="False" AutoPlay="False">
                     <MediaPlayerElement.TransportControls>
                         <MediaTransportControls x:Name="VideoTransportControls" Visibility="Collapsed"></MediaTransportControls>
                     </MediaPlayerElement.TransportControls>
