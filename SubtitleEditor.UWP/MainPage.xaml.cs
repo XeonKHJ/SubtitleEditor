@@ -99,9 +99,9 @@ namespace SubtitleEditor.UWP
         private async void MediaPlayer_MediaOpenedAsync(FrameMediaPlayer sender, object args)
         {
             await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
-                {
-                    VideoElement.SetMediaPlayer(mediaPlayer.MediaPlayer);
-                });
+            {
+                VideoElement.SetMediaPlayer(mediaPlayer.MediaPlayer);
+            });
 
             if (inputBitmap != null)
             {
