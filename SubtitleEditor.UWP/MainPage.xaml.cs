@@ -30,6 +30,7 @@ using Windows.UI.Core;
 using Windows.Storage.Pickers;
 using SubtitleEditor.UWP.Controls;
 using System.Text;
+using System.ComponentModel;
 
 // https://go.microsoft.com/fwlink/?LinkId=402352&clcid=0x804 上介绍了“空白页”项模板
 
@@ -44,7 +45,63 @@ namespace SubtitleEditor.UWP
         {
             this.InitializeComponent();
             mediaPlayer.MediaOpened += MediaPlayer_MediaOpenedAsync;
+            DialoguesViewModel.SubtitleEdited += DialoguesViewModel_SubtitleEdited;
             //mediaPlayer.VideoFrameAvailable += MediaPlayer_VideoFrameAvailableAsync;
+        }
+
+        /// <summary>
+        /// 视图模型到实例转换
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void DialoguesViewModel_SubtitleEdited(object sender, PropertyChangedEventArgs e)
+        {
+            if(sender is DialogueViewModel dvm)
+            {
+                EditDialogue(dvm, e.PropertyName);
+            }
+        }
+
+        private void EditDialogue(DialogueViewModel dialogueViewModel, string propertyName)
+        {
+            var selectedDialogueList = (from d in Subtitle.Dialogues
+                                        where d.No == dialogueViewModel.No
+                                        select d).ToList();
+            if (selectedDialogueList.Count == 1)
+            {
+                var selectedDialogue = selectedDialogueList.First();
+                switch (propertyName)
+                {
+                    case "Line":
+                        selectedDialogue.Line = dialogueViewModel.Line;
+                        break;
+                }
+            }
+            else if(selectedDialogueList.Count == 0)
+            {
+                AddDialogue(dialogueViewModel);
+            }
+        }
+
+        private void AddDialogue(DialogueViewModel dialogueViewModel)
+        {
+            if(dialogueViewModel != null &&
+               string.IsNullOrEmpty(dialogueViewModel.Line))
+            {
+                Subtitle.Dialogues.Add(
+                    new Dialogue(
+                        dialogueViewModel.From, 
+                        dialogueViewModel.To, 
+                        dialogueViewModel.Line
+                    )
+                );
+            }
+            
+        }
+
+        private void DeleteDialogue(DialogueViewModel dialogueViewModel)
+        {
+
         }
 
         public Subtitle Subtitle { set; get; }
@@ -240,7 +297,6 @@ namespace SubtitleEditor.UWP
                     SubRipParser subRipParser = new SubRipParser();
                     Subtitle = subRipParser.LoadFromString(content);
                     DialoguesViewModel.LoadSubtitle(Subtitle);
-
                     //修改选中编码
                     EncodingsBox.SelectedItem = streamReader.CurrentEncoding.EncodingName;
                 }

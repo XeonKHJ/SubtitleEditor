@@ -33,14 +33,30 @@ namespace SubtitleEditor.UWP.ViewModels
             {
                 foreach (var d in subtitle.Dialogues)
                 {
-                    Items.Add(new DialogueViewModel(d));
+                    var dialogueViewModel = new DialogueViewModel(d);
+                    dialogueViewModel.PropertyChanged += DialogueViewModel_PropertyChanged;
+                    Items.Add(dialogueViewModel);
                 }
+
+                var blankViewModel = new DialogueViewModel { No = 0, Line = "" };
+                blankViewModel.PropertyChanged += DialogueViewModel_PropertyChanged;
+                Items.Add(blankViewModel);
+
                 OnCollectionChanged(new System.Collections.Specialized.NotifyCollectionChangedEventArgs(System.Collections.Specialized.NotifyCollectionChangedAction.Reset));
             }
             else
             {
                 throw new ArgumentNullException(nameof(subtitle));
             }
+        }
+
+        public event PropertyChangedEventHandler SubtitleEdited;
+        private async void DialogueViewModel_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            await Task.Run(() =>
+            {
+                SubtitleEdited.Invoke(sender, e);
+            }).ConfigureAwait(false);
         }
     }
 }
