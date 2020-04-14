@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Collections.ObjectModel;
 using SubtitleEditor.Subtitles;
+using System.Collections.Specialized;
 
 namespace SubtitleEditor.UWP.ViewModels
 {
@@ -16,11 +17,23 @@ namespace SubtitleEditor.UWP.ViewModels
             this.CollectionChanged += DialoguesViewModel_CollectionChanged;
         }
 
-        private void DialoguesViewModel_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+        private void DialoguesViewModel_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
-            System.Diagnostics.Debug.WriteLine("fuck me!");
+            switch(e.Action)
+            {
+                case NotifyCollectionChangedAction.Add:
+                    foreach (DialogueViewModel item in e.NewItems)
+                    {
+                        item.PropertyChanged += DialogueViewModel_PropertyChanged;
+                    }
+                    //如果是添加字幕
+                    DialoguesAddedOrDeleted(sender, e);
+                    break;
+            }
+
         }
 
+        Subtitle _subtitle;
         public DialoguesViewModelCollection(Subtitle subtitle)
         {
             LoadSubtitle(subtitle);
@@ -29,6 +42,7 @@ namespace SubtitleEditor.UWP.ViewModels
         public void LoadSubtitle(Subtitle subtitle)
         {
             Items.Clear();
+            _subtitle = subtitle;
             if(subtitle != null)
             {
                 foreach (var d in subtitle.Dialogues)
@@ -38,19 +52,30 @@ namespace SubtitleEditor.UWP.ViewModels
                     Items.Add(dialogueViewModel);
                 }
 
-                var blankViewModel = new DialogueViewModel { No = 0, Line = "" };
-                blankViewModel.PropertyChanged += DialogueViewModel_PropertyChanged;
-                Items.Add(blankViewModel);
+                //AddNewBlankDialogueViewModel();
 
-                OnCollectionChanged(new System.Collections.Specialized.NotifyCollectionChangedEventArgs(System.Collections.Specialized.NotifyCollectionChangedAction.Reset));
+                OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
             }
             else
             {
                 throw new ArgumentNullException(nameof(subtitle));
             }
         }
+        private void AddNewBlankDialogueViewModel()
+        {
+            var blankViewModel = new DialogueViewModel { No = 0, Line = "" };
+            blankViewModel.PropertyChanged += DialogueViewModel_PropertyChanged;
+            Items.Add(blankViewModel);
+        }
+
+        public void AddBlankDialogue()
+        {
+            AddNewBlankDialogueViewModel();
+            OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
+        }
 
         public event PropertyChangedEventHandler SubtitleEdited;
+        public event NotifyCollectionChangedEventHandler DialoguesAddedOrDeleted;
         private async void DialogueViewModel_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
             await Task.Run(() =>

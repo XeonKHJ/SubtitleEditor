@@ -31,6 +31,8 @@ using Windows.Storage.Pickers;
 using SubtitleEditor.UWP.Controls;
 using System.Text;
 using System.ComponentModel;
+using Windows.System;
+using System.Collections.Specialized;
 
 // https://go.microsoft.com/fwlink/?LinkId=402352&clcid=0x804 上介绍了“空白页”项模板
 
@@ -46,7 +48,26 @@ namespace SubtitleEditor.UWP
             this.InitializeComponent();
             mediaPlayer.MediaOpened += MediaPlayer_MediaOpenedAsync;
             DialoguesViewModel.SubtitleEdited += DialoguesViewModel_SubtitleEdited;
+            DialoguesViewModel.DialoguesAddedOrDeleted += DialoguesViewModel_DialoguesAddedOrDeleted;
             //mediaPlayer.VideoFrameAvailable += MediaPlayer_VideoFrameAvailableAsync;
+            DialoguesViewModel.LoadSubtitle(Subtitle);
+        }
+
+        private void DialoguesViewModel_DialoguesAddedOrDeleted(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+        {
+            var items = e.NewItems;
+
+            switch(e.Action)
+            {
+                case NotifyCollectionChangedAction.Add:
+                    foreach(DialogueViewModel item in items)
+                    {
+                        var d = item.ToDialogue();
+                        Subtitle.Dialogues.Add(d);
+                    }
+                    
+                    break;
+            }
         }
 
         /// <summary>
@@ -56,7 +77,7 @@ namespace SubtitleEditor.UWP
         /// <param name="e"></param>
         private void DialoguesViewModel_SubtitleEdited(object sender, PropertyChangedEventArgs e)
         {
-            if(sender is DialogueViewModel dvm)
+            if (sender is DialogueViewModel dvm)
             {
                 EditDialogue(dvm, e.PropertyName);
             }
@@ -77,34 +98,38 @@ namespace SubtitleEditor.UWP
                         break;
                 }
             }
-            else if(selectedDialogueList.Count == 0)
+            else if (selectedDialogueList.Count == 0)
             {
                 AddDialogue(dialogueViewModel);
             }
         }
 
-        private void AddDialogue(DialogueViewModel dialogueViewModel)
+        private void AddDialogue(DialogueViewModel dialogueViewModel = null)
         {
-            if(dialogueViewModel != null &&
-               string.IsNullOrEmpty(dialogueViewModel.Line))
+            TimeSpan lastDialgueEndTime = TimeSpan.Zero;
+            TimeSpan defaultSpan = TimeSpan.Zero;
+            if(Subtitle.Dialogues.Count > 0)
             {
-                Subtitle.Dialogues.Add(
-                    new Dialogue(
-                        dialogueViewModel.From, 
-                        dialogueViewModel.To, 
-                        dialogueViewModel.Line
-                    )
-                );
+                lastDialgueEndTime = Subtitle.Dialogues.Last().To;
             }
-            
+
+            if (dialogueViewModel == null)
+            {
+                dialogueViewModel = new DialogueViewModel() { Line = "" };
+                dialogueViewModel.From = lastDialgueEndTime;
+                dialogueViewModel.No = Subtitle.Dialogues.Count + 1;
+                dialogueViewModel.To = lastDialgueEndTime + defaultSpan;
+            }
+
+            DialoguesViewModel.Add(dialogueViewModel);
         }
 
         private void DeleteDialogue(DialogueViewModel dialogueViewModel)
         {
-
+            
         }
 
-        public Subtitle Subtitle { set; get; }
+        public Subtitle Subtitle { set; get; } = new Subtitle();
         public DialoguesViewModelCollection DialoguesViewModel { get; } = new DialoguesViewModelCollection();
         private async void OpenButton_ClickAsync(object sender, RoutedEventArgs e)
         {
@@ -314,6 +339,7 @@ namespace SubtitleEditor.UWP
         }
         private void DialoguesGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
+            DialogueBox_LostFocus(null, null);
             if (e.AddedItems.Count != 0)
             {
                 var firstItem = (DialogueViewModel)e.AddedItems.First();
@@ -386,6 +412,29 @@ namespace SubtitleEditor.UWP
                 FramedTransportControls.ValueType = FramedMediaTransportControls.TransportValueType.Frame;
             }
 
+        }
+
+        private void AddLineButton_Click(object sender, RoutedEventArgs e)
+        {
+            AddDialogue();
+        }
+
+        private DialogueViewModel editingDialogue;
+        private void DialogueBox_LostFocus(object sender, RoutedEventArgs e)
+        {
+            if(editingDialogue != null)
+            {
+                editingDialogue.Line = DialogueBox.Text;
+                editingDialogue = null;
+            }
+        }
+
+        private void DialogueBox_GotFocus(object sender, RoutedEventArgs e)
+        {
+            if(DialoguesGrid.SelectedItems.Count > 0)
+            {
+                editingDialogue = DialoguesGrid.SelectedItems[0] as DialogueViewModel;
+            }
         }
     }
 }

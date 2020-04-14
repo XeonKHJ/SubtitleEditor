@@ -51,6 +51,10 @@ namespace SubtitleEditor.UWP.ViewModels
             }
         }
 
+        public Dialogue ToDialogue()
+        {
+            return new Dialogue(From, To, Line) { No = No };
+        }
 
         public TimeSpan Span
         {
