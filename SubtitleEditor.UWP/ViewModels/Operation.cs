@@ -8,7 +8,7 @@ namespace SubtitleEditor.UWP.ViewModels
 {
     public enum OperationType { Edit, Add, Delete}
     public enum OperatedProperty { Line, From, To}
-    class Operation
+    public class Operation
     {
         public DateTime OperateTime { set; get; }
         public OperatedProperty Property { set; get; }

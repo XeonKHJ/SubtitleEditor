@@ -14,10 +14,10 @@ namespace SubtitleEditor.UWP.ViewModels
     {
         public DialoguesViewModelCollection()
         {
-            this.CollectionChanged += DialoguesViewModel_CollectionChanged;
+            CollectionChanged += DialoguesViewModel_CollectionChanged;
         }
 
-        Stack<Operation> OperationStack = new Stack<Operation>();
+        private readonly Stack<List<Operation>> OperationStack = new Stack<List<Operation>>();
         private void DialoguesViewModel_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
             switch(e.Action)
