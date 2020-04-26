@@ -105,7 +105,7 @@
                 <controls:DataGridTextColumn Header="结束时间" Binding="{Binding To, Converter={StaticResource StringFormatterValueConverter}}"></controls:DataGridTextColumn>
                 <controls:DataGridTextColumn Header="持续时间" Binding="{Binding Span, Converter={StaticResource StringFormatterValueConverter}}"></controls:DataGridTextColumn>
                 <controls:DataGridTextColumn x:Name="DialoguesColumn" Header="字幕" Width="*" 
-                                             Binding="{Binding Line}" x:DefaultBindMode="TwoWay">
+                                             Binding="{Binding SingleLine}" x:DefaultBindMode="TwoWay">
                     <!--<controls:DataGridTextColumn.EditingElementStyle>
                         <Style TargetType="TextBox">
                             <Setter Property="AcceptsReturn" Value="true"/>

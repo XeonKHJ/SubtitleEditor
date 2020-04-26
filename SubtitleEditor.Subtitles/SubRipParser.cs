@@ -24,7 +24,7 @@ namespace SubtitleEditor.Subtitles
             Regex beginTimeRegex = new Regex(@"(?<beginTime>(\d{2}):(\d{2}):(\d{2}),(\d{3}))");
             Regex endTimeRegex = new Regex(@"(?<endTime>(\d{2}):(\d{2}):(\d{2}),(\d{3}))");
             Regex timeArrowRegex = new Regex("(-->)");
-            Regex newLineRegex = new Regex(@"(\n|\r)+");
+            Regex newLineRegex = new Regex(@"(\n|\r)");
             Regex dialogueLineRegex = new Regex(@"((?<dialogue>.*?)(?=(((\s*)(\r|\n)+\d+\s*(\r|\n)+((\d{2}):(\d{2}):(\d{2}),(\d{3}))(\s*)(-->)(\s*)((\d{2}):(\d{2}):(\d{2}),(\d{3})))|(\s*(\r|\n)*)\z)))");
             Regex anyEmptyChar = new Regex(@"(\s)*");
             var srtRegex = new Regex(numberLineRegex.ToString()     //出现序号

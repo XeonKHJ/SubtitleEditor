@@ -17,6 +17,7 @@ namespace SubtitleEditor.UWP.ViewModels
             this.CollectionChanged += DialoguesViewModel_CollectionChanged;
         }
 
+        Stack<Operation> OperationStack = new Stack<Operation>();
         private void DialoguesViewModel_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
             switch(e.Action)
@@ -30,7 +31,6 @@ namespace SubtitleEditor.UWP.ViewModels
                     DialoguesAddedOrDeleted(sender, e);
                     break;
             }
-
         }
 
         Subtitle _subtitle;
