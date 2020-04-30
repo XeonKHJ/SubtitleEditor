@@ -80,7 +80,7 @@ namespace SubtitleEditor.UWP.ViewModels
         {
             await Task.Run(() =>
             {
-                SubtitleEdited.Invoke(sender, e);
+                SubtitleEdited?.Invoke(sender, e);
             }).ConfigureAwait(false);
         }
     }

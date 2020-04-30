@@ -38,27 +38,11 @@ namespace SubtitleEditor.UWP.ViewModels
         public TimeSpan To { set; get; }
 
         private string _line;
-
-        public string SingleLine
-        {
-            get
-            {
-                return _line.Replace("\n", "\\n", StringComparison.Ordinal).Replace("\r\\n", "\\n", StringComparison.Ordinal);
-            }
-            set
-            {
-                if(value != null)
-                {
-                    _line = value.Replace("\\n", Environment.NewLine, StringComparison.Ordinal);
-                    OnPropertyChanged();
-                }
-            }
-        }
         public string Line
         {
             set
             {
-                SingleLine = value;
+                _line = value;
                 OnPropertyChanged();
             }
             get

@@ -25,7 +25,17 @@ namespace SubtitleEditor.UWP
             }
             else if(value is string dialogue)
             {
-
+                if(parameter is string option)
+                {
+                    switch (option)
+                    {
+                        case "SingleLine":
+                            valueString = valueString.Replace("\n", "\\n", StringComparison.Ordinal)
+                                                     .Replace("\r\\n", "\\n", StringComparison.Ordinal)
+                                                     .Replace("\r", "\\n", StringComparison.Ordinal);
+                            break;
+                    }
+                }
             }
 
             return valueString;
@@ -33,7 +43,20 @@ namespace SubtitleEditor.UWP
 
         public object ConvertBack(object value, Type targetType, object parameter, string language)
         {
-            return value;
+            Object target = value;
+            if(parameter is string paramString)
+            {
+                switch (parameter)
+                {
+                    case "SingleLine":
+                        if(value is string singleLineDialogue)
+                        {
+                            target = singleLineDialogue.Replace("\\n", Environment.NewLine, StringComparison.Ordinal);
+                        }
+                        break;
+                }
+            }
+            return target;
         }
     }
 }

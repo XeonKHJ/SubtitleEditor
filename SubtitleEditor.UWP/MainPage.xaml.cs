@@ -47,88 +47,8 @@ namespace SubtitleEditor.UWP
         {
             this.InitializeComponent();
             mediaPlayer.MediaOpened += MediaPlayer_MediaOpenedAsync;
-            DialoguesViewModel.SubtitleEdited += DialoguesViewModel_SubtitleEdited;
-            DialoguesViewModel.DialoguesAddedOrDeleted += DialoguesViewModel_DialoguesAddedOrDeleted;
-            //mediaPlayer.VideoFrameAvailable += MediaPlayer_VideoFrameAvailableAsync;
             DialoguesViewModel.LoadSubtitle(Subtitle);
         }
-
-        private void DialoguesViewModel_DialoguesAddedOrDeleted(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
-        {
-            var items = e.NewItems;
-
-            switch(e.Action)
-            {
-                case NotifyCollectionChangedAction.Add:
-                    foreach(DialogueViewModel item in items)
-                    {
-                        var d = item.ToDialogue();
-                        Subtitle.Dialogues.Add(d);
-                    }
-                    
-                    break;
-            }
-        }
-
-        /// <summary>
-        /// 视图模型到实例转换
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void DialoguesViewModel_SubtitleEdited(object sender, PropertyChangedEventArgs e)
-        {
-            if (sender is DialogueViewModel dvm)
-            {
-                EditDialogue(dvm, e.PropertyName);
-            }
-        }
-
-        private void EditDialogue(DialogueViewModel dialogueViewModel, string propertyName)
-        {
-            var selectedDialogueList = (from d in Subtitle.Dialogues
-                                        where d.No == dialogueViewModel.No
-                                        select d).ToList();
-            if (selectedDialogueList.Count == 1)
-            {
-                var selectedDialogue = selectedDialogueList.First();
-                switch (propertyName)
-                {
-                    case "Line":
-                        selectedDialogue.Line = dialogueViewModel.Line;
-                        break;
-                }
-            }
-            else if (selectedDialogueList.Count == 0)
-            {
-                AddDialogue(dialogueViewModel);
-            }
-        }
-
-        private void AddDialogue(DialogueViewModel dialogueViewModel = null)
-        {
-            TimeSpan lastDialgueEndTime = TimeSpan.Zero;
-            TimeSpan defaultSpan = TimeSpan.Zero;
-            if(Subtitle.Dialogues.Count > 0)
-            {
-                lastDialgueEndTime = Subtitle.Dialogues.Last().To;
-            }
-
-            if (dialogueViewModel == null)
-            {
-                dialogueViewModel = new DialogueViewModel() { Line = "" };
-                dialogueViewModel.From = lastDialgueEndTime;
-                dialogueViewModel.No = Subtitle.Dialogues.Count + 1;
-                dialogueViewModel.To = lastDialgueEndTime + defaultSpan;
-            }
-
-            DialoguesViewModel.Add(dialogueViewModel);
-        }
-
-        private void DeleteDialogue(DialogueViewModel dialogueViewModel)
-        {
-            
-        }
-
         public Subtitle Subtitle { set; get; } = new Subtitle();
         public DialoguesViewModelCollection DialoguesViewModel { get; } = new DialoguesViewModelCollection();
         private async void OpenButton_ClickAsync(object sender, RoutedEventArgs e)
@@ -331,10 +251,16 @@ namespace SubtitleEditor.UWP
 
         private void AddLineButton_Click(object sender, RoutedEventArgs e)
         {
-            AddDialogue();
+            
         }
 
         private DialogueViewModel editingDialogue;
+
+        /// <summary>
+        /// 当对话框失去焦点时，说明已经编辑完成。
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void DialogueBox_LostFocus(object sender, RoutedEventArgs e)
         {
             if(editingDialogue != null)
@@ -344,6 +270,11 @@ namespace SubtitleEditor.UWP
             }
         }
 
+        /// <summary>
+        /// 当选中一条或多条对话时的操作，第一条选中的对话出现在主框上。
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void DialogueBox_GotFocus(object sender, RoutedEventArgs e)
         {
             if(DialoguesGrid.SelectedItems.Count > 0)
