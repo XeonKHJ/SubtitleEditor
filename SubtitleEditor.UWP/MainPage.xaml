@@ -26,7 +26,7 @@
             <RowDefinition Height="8*"></RowDefinition>
             <RowDefinition Height="auto"></RowDefinition>
         </Grid.RowDefinitions>
-        <MenuBar VerticalAlignment="Top" Grid.Row="0">
+        <MenuBar VerticalAlignment="Top" Grid.Row="0" Visibility="Collapsed">
             <MenuBarItem Title="文件">
                 <MenuFlyoutItem x:Name="NewButton" Text="新建" Click="OpenButton_ClickAsync">
                     <MenuFlyoutItem.KeyboardAccelerators>
@@ -55,6 +55,20 @@
             </MenuBarItem>
             <MenuBarItem Title="关于"></MenuBarItem>
         </MenuBar>
+        <StackPanel Grid.Row="0" Orientation="Horizontal"  Margin="0, 10, 0, 10">
+            <CommandBar DefaultLabelPosition="Right" Background="Transparent" HorizontalAlignment="Left">
+            <AppBarButton x:Name="NewBarButton" Icon="NewWindow" Label="新建"></AppBarButton>
+            <AppBarButton x:Name="OpenSubBarButton" Icon="OpenFile" Click="OpenButton_ClickAsync" Label="打开字幕"></AppBarButton>
+            <AppBarButton x:Name="OpenVideoBarButton" Icon="Video" Click="OpenVideoButton_Click" Label="导入视频"></AppBarButton>
+            <CommandBar.SecondaryCommands>
+                <AppBarButton Icon="Setting" Label="设置"></AppBarButton>
+            </CommandBar.SecondaryCommands>
+            </CommandBar>
+            <StackPanel Margin="10, 0, 0, 0" x:Name="SearchFunctionPanel" Orientation="Horizontal" VerticalAlignment="Center">
+                <TextBox Width="150"></TextBox>
+            </StackPanel>
+        </StackPanel>
+
         <RelativePanel Grid.Row="1">
             <Grid x:Name="VideoGrid" RelativePanel.Above="FramedTransportControls" RelativePanel.AlignRightWithPanel="True" 
                   RelativePanel.AlignLeftWithPanel="True" RelativePanel.AlignTopWithPanel="True">
