@@ -11,6 +11,7 @@ namespace SubtitleEditor.UWP.ViewModels
 {
     public class DialogueViewModel : INotifyPropertyChanged
     {
+        private Dialogue _dialogue;
         public DialogueViewModel(Dialogue dialogue)
         {
             if(dialogue != null)
@@ -19,7 +20,7 @@ namespace SubtitleEditor.UWP.ViewModels
                 From = dialogue.From;
                 To = dialogue.To;
                 Line = dialogue.Line;
-                isLoaded = true;
+                _isLoaded = true;
             }
             else
             {
@@ -29,10 +30,10 @@ namespace SubtitleEditor.UWP.ViewModels
 
         public DialogueViewModel() 
         {
-            isLoaded = true;
+            _isLoaded = true;
         }
 
-        private bool isLoaded = false;
+        private bool _isLoaded = false;
         public int No { set; get; }
         public TimeSpan From { set; get; }
         public TimeSpan To { set; get; }
@@ -65,7 +66,7 @@ namespace SubtitleEditor.UWP.ViewModels
         }
         public void OnPropertyChanged([CallerMemberName] string propertyName = null)
         {
-            if(isLoaded)
+            if(_isLoaded)
             {
                 PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
             }

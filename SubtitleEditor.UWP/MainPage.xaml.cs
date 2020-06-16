@@ -143,7 +143,7 @@ namespace SubtitleEditor.UWP
             FramedTransportControls.Visibility = Visibility.Collapsed;
         }
 
-        private StorageFile openedFile;
+        private StorageFile _openedFile;
         private async void OpenSubFile(StorageFile file)
         {
             if (file != null)
@@ -151,7 +151,7 @@ namespace SubtitleEditor.UWP
                 using (var stream = await file.OpenReadAsync())
                 using (var streamReader = new StreamReader(stream.AsStreamForRead(), true))
                 {
-                    openedFile = file;
+                    _openedFile = file;
 
                     var content = await streamReader.ReadToEndAsync().ConfigureAwait(true);
                     SubRipParser subRipParser = new SubRipParser();
@@ -215,9 +215,9 @@ namespace SubtitleEditor.UWP
                     SuggestedStartLocation = PickerLocationId.VideosLibrary,
                     SuggestedFileName = "新建字幕文件"
                 };
-                if (openedFile != null)
+                if (_openedFile != null)
                 {
-                    picker.SuggestedFileName = openedFile.DisplayName;
+                    picker.SuggestedFileName = _openedFile.DisplayName;
                 }
 
                 picker.FileTypeChoices.Add("SubRip", new List<string>() { ".srt" });
@@ -281,6 +281,11 @@ namespace SubtitleEditor.UWP
             {
                 editingDialogue = DialoguesGrid.SelectedItems[0] as DialogueViewModel;
             }
+        }
+
+        private void SaveLocalBarButton_Click(object sender, RoutedEventArgs e)
+        {
+
         }
     }
 }

@@ -57,12 +57,14 @@
         </MenuBar>
         <StackPanel Grid.Row="0" Orientation="Horizontal"  Margin="0, 10, 0, 10">
             <CommandBar DefaultLabelPosition="Right" Background="Transparent" HorizontalAlignment="Left">
-            <AppBarButton x:Name="NewBarButton" Icon="NewWindow" Label="新建"></AppBarButton>
-            <AppBarButton x:Name="OpenSubBarButton" Icon="OpenFile" Click="OpenButton_ClickAsync" Label="打开字幕"></AppBarButton>
-            <AppBarButton x:Name="OpenVideoBarButton" Icon="Video" Click="OpenVideoButton_Click" Label="导入视频"></AppBarButton>
-            <CommandBar.SecondaryCommands>
-                <AppBarButton Icon="Setting" Label="设置"></AppBarButton>
-            </CommandBar.SecondaryCommands>
+                <AppBarButton x:Name="NewBarButton" Icon="NewWindow" Label="新建"></AppBarButton>
+                <AppBarButton x:Name="OpenSubBarButton" Icon="OpenFile" Click="OpenButton_ClickAsync" Label="打开字幕"></AppBarButton>
+                <AppBarButton x:Name="OpenVideoBarButton" Icon="Video" Click="OpenVideoButton_Click" Label="导入视频"></AppBarButton>
+                <AppBarButton x:Name="SaveBarButton" Icon="Save" Click="SaveButton_Click" Label="保存"></AppBarButton>
+                <AppBarButton x:Name="SaveLocalBarButton" Icon="SaveLocal" Click="SaveLocalBarButton_Click" Label="另存为"></AppBarButton>
+                <CommandBar.SecondaryCommands>
+                    <AppBarButton Icon="Setting" Label="设置"></AppBarButton>
+                </CommandBar.SecondaryCommands>
             </CommandBar>
             <StackPanel Margin="10, 0, 0, 0" x:Name="SearchFunctionPanel" Orientation="Horizontal" VerticalAlignment="Center">
                 <TextBox Width="150"></TextBox>
