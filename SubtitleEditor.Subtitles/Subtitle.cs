@@ -5,17 +5,25 @@ namespace SubtitleEditor.Subtitles
 {
     public class Subtitle
     {
-        public List<Dialogue> Dialogues { set; get; } = new List<Dialogue>();
+        private List<Dialogue> _dialogues { set; get; } = new List<Dialogue>();
+
+        public IReadOnlyList<Dialogue> Dialogues
+        {
+            get
+            {
+                return _dialogues;
+            }
+        }
 
         public void AddDialogue(Dialogue dialogue)
         {
-            Dialogues.Add(dialogue);
+            _dialogues.Add(dialogue);
             DialogueAdded?.Invoke(this, dialogue);
         }
 
         public void DeleteDialogue(Dialogue dialogue)
         {
-            Dialogues.Remove(dialogue);
+            _dialogues.Remove(dialogue);
         }
 
 

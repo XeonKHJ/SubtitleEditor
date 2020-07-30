@@ -12,15 +12,25 @@ namespace SubtitleEditor.UWP.ViewModels
 {
     public class DialoguesViewModelCollection : ObservableCollection<DialogueViewModel>
     {
+        private readonly Stack<List<Operation>> _operationStack = new Stack<List<Operation>>();
+        private Subtitle _subtitle;
+
+        public event PropertyChangedEventHandler SubtitleEdited;
+        public event NotifyCollectionChangedEventHandler DialoguesAddedOrDeleted;
+
         public DialoguesViewModelCollection()
         {
             CollectionChanged += DialoguesViewModel_CollectionChanged;
         }
 
-        private readonly Stack<List<Operation>> OperationStack = new Stack<List<Operation>>();
+        /// <summary>
+        /// 因为我们在GridView里显示，因此当单条字幕经过修改时，需要通知界面（不能通过默认通知因为绑定的数据不是里面的对话，而是对话合集的字幕）。
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void DialoguesViewModel_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
-            switch(e.Action)
+            switch (e.Action)
             {
                 case NotifyCollectionChangedAction.Add:
                     foreach (DialogueViewModel item in e.NewItems)
@@ -32,23 +42,24 @@ namespace SubtitleEditor.UWP.ViewModels
                     break;
             }
         }
-
-        private Subtitle _subtitle;
         public DialoguesViewModelCollection(Subtitle subtitle)
         {
             LoadSubtitle(subtitle);
         }
 
+        /// <summary>
+        /// 将字幕加载进该视图模型
+        /// </summary>
+        /// <param name="subtitle">字幕实例</param>
         public void LoadSubtitle(Subtitle subtitle)
         {
             Items.Clear();
 
-            
-
-            _subtitle = subtitle;
-
-            if(subtitle != null)
+            if (subtitle != null)
             {
+                _subtitle = subtitle;
+                _subtitle.DialogueAdded += Subtitle_DialogueAdded;
+
                 foreach (var d in subtitle.Dialogues)
                 {
                     var dialogueViewModel = new DialogueViewModel(d);
@@ -65,10 +76,16 @@ namespace SubtitleEditor.UWP.ViewModels
                 throw new ArgumentNullException(nameof(subtitle));
             }
         }
+
+        private void Subtitle_DialogueAdded(object sender, Dialogue e)
+        {
+            
+        }
+
         private void AddNewBlankDialogueViewModel()
         {
             int lastCount = 0;
-            if(Items != null)
+            if (Items != null)
             {
                 lastCount = Items.Count + 1;
             }
@@ -83,8 +100,6 @@ namespace SubtitleEditor.UWP.ViewModels
             OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
         }
 
-        public event PropertyChangedEventHandler SubtitleEdited;
-        public event NotifyCollectionChangedEventHandler DialoguesAddedOrDeleted;
         private async void DialogueViewModel_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
             await Task.Run(() =>
