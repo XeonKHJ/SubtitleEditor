@@ -33,7 +33,7 @@ namespace SubtitleEditor.UWP.ViewModels
             }
         }
 
-        Subtitle _subtitle;
+        private Subtitle _subtitle;
         public DialoguesViewModelCollection(Subtitle subtitle)
         {
             LoadSubtitle(subtitle);
@@ -42,7 +42,11 @@ namespace SubtitleEditor.UWP.ViewModels
         public void LoadSubtitle(Subtitle subtitle)
         {
             Items.Clear();
+
+            
+
             _subtitle = subtitle;
+
             if(subtitle != null)
             {
                 foreach (var d in subtitle.Dialogues)
@@ -63,7 +67,12 @@ namespace SubtitleEditor.UWP.ViewModels
         }
         private void AddNewBlankDialogueViewModel()
         {
-            var blankViewModel = new DialogueViewModel { No = 0, Line = "" };
+            int lastCount = 0;
+            if(Items != null)
+            {
+                lastCount = Items.Count + 1;
+            }
+            var blankViewModel = new DialogueViewModel { No = lastCount, Line = "" };
             blankViewModel.PropertyChanged += DialogueViewModel_PropertyChanged;
             Items.Add(blankViewModel);
         }
