@@ -20,7 +20,7 @@ namespace SubtitleEditor.UWP.ViewModels
 
         public DialoguesViewModelCollection()
         {
-            CollectionChanged += DialoguesViewModel_CollectionChanged;
+            //CollectionChanged += DialoguesViewModel_CollectionChanged;
         }
 
         /// <summary>
@@ -79,25 +79,27 @@ namespace SubtitleEditor.UWP.ViewModels
 
         private void Subtitle_DialogueAdded(object sender, Dialogue e)
         {
+            DialogueViewModel dialogueViewModel = new DialogueViewModel(e);
+            this.Add(dialogueViewModel);
+        }
+
+        public void AddDialogue(string line)
+        {
+            TimeSpan beginTime;
             
-        }
-
-        private void AddNewBlankDialogueViewModel()
-        {
-            int lastCount = 0;
-            if (Items != null)
+            if(this.Count > 0)
             {
-                lastCount = Items.Count + 1;
+                beginTime = this.Last().To;
             }
-            var blankViewModel = new DialogueViewModel { No = lastCount, Line = "" };
-            blankViewModel.PropertyChanged += DialogueViewModel_PropertyChanged;
-            Items.Add(blankViewModel);
+
+            Dialogue dialogue = new Dialogue(beginTime, beginTime, line);
+
+            _subtitle.AddDialogue(dialogue);
         }
 
-        public void AddBlankDialogue()
+        public void AddDialogue(DialogueViewModel dialogue)
         {
-            AddNewBlankDialogueViewModel();
-            OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
+
         }
 
         private async void DialogueViewModel_PropertyChanged(object sender, PropertyChangedEventArgs e)

@@ -251,7 +251,8 @@ namespace SubtitleEditor.UWP
 
         private void AddLineButton_Click(object sender, RoutedEventArgs e)
         {
-            DialoguesViewModel.AddBlankDialogue();
+            //DialoguesViewModel.AddBlankDialogue();
+            DialoguesViewModel.AddDialogue("");
         }
 
         private DialogueViewModel editingDialogue;
