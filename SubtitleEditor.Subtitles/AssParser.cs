@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -8,6 +9,11 @@ namespace SubtitleEditor.Subtitles
     public class AssParser : ISubtitleParser
     {
         public Subtitle LoadFromFile(string filePath)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Subtitle LoadFromStream(Stream stream, Encoding encoding)
         {
             throw new NotImplementedException();
         }

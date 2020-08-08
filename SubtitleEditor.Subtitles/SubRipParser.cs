@@ -5,6 +5,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Globalization;
+using SubtitlesParser.Classes.Parsers;
 
 namespace SubtitleEditor.Subtitles
 {
@@ -13,13 +14,47 @@ namespace SubtitleEditor.Subtitles
         public Subtitle LoadFromFile(string filePath)
         {
             var subString = File.ReadAllText(filePath);
+            
             var subtitle = LoadFromString(subString);
 
             return subtitle;
         }
 
+        public Subtitle LoadFromStream(Stream stream, Encoding encoding)
+        {
+            SrtParser parser = new SrtParser();
+            Subtitle subtitle = new Subtitle();
+            var sub = parser.ParseStream(stream, encoding);
+
+            int no = 0;
+            foreach(var dia in sub)
+            {
+                
+                string line = string.Empty;
+
+                for(int i = 0; i < dia.Lines.Count; ++i)
+                {
+                    if(i == dia.Lines.Count - 1)
+                    {
+                        line += dia.Lines[i];
+                    }
+                    else
+                    {
+                        line += (dia.Lines[i] + System.Environment.NewLine);
+                    }
+                }
+                Dialogue dialogue = new Dialogue(new TimeSpan(0, 0, 0, 0, dia.StartTime), new TimeSpan(0, 0, 0, 0, dia.EndTime), line)
+                {
+                    No = ++no
+                };
+                subtitle.AddDialogue(dialogue);
+            }
+            return subtitle;
+        }
+
         public Subtitle LoadFromString(string subString)
         {
+
             Regex numberLineRegex = new Regex(@"(?<number>\d+)");
             Regex beginTimeRegex = new Regex(@"(?<beginTime>(\d{2}):(\d{2}):(\d{2}),(\d{3}))");
             Regex endTimeRegex = new Regex(@"(?<endTime>(\d{2}):(\d{2}):(\d{2}),(\d{3}))");

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -15,5 +16,7 @@ namespace SubtitleEditor.Subtitles
         void SaveToFile(Subtitle subtitle, string filePath, Encoding encoding);
 
         Task SaveToFileAsync(Subtitle subtitle, string filePath, Encoding encoding);
+
+        Subtitle LoadFromStream(Stream stream, Encoding encoding);
     }
 }

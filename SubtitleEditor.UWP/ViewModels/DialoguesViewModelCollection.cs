@@ -38,7 +38,7 @@ namespace SubtitleEditor.UWP.ViewModels
                         item.PropertyChanged += DialogueViewModel_PropertyChanged;
                     }
                     //如果是添加字幕
-                    DialoguesAddedOrDeleted(sender, e);
+                    //DialoguesAddedOrDeleted(sender, e);
                     break;
             }
         }
@@ -99,7 +99,7 @@ namespace SubtitleEditor.UWP.ViewModels
 
         public void AddDialogue(DialogueViewModel dialogue)
         {
-
+            
         }
 
         private async void DialogueViewModel_PropertyChanged(object sender, PropertyChangedEventArgs e)

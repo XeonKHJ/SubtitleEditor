@@ -11,4 +11,8 @@
     </PackageReference>
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\SubtitlesParser\SubtitlesParser.csproj" />
+  </ItemGroup>
+
 </Project>

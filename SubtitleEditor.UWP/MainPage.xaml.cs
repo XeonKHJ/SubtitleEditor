@@ -149,16 +149,24 @@ namespace SubtitleEditor.UWP
             if (file != null)
             {
                 using (var stream = await file.OpenReadAsync())
-                using (var streamReader = new StreamReader(stream.AsStreamForRead(), true))
+                //using (var streamReader = new StreamReader(stream.AsStreamForRead(), true))
+                //{
+                //    _openedFile = file;
+
+                //    var content = await streamReader.ReadToEndAsync().ConfigureAwait(true);
+                //    SubRipParser subRipParser = new SubRipParser();
+                //    Subtitle = subRipParser.LoadFromString(content);
+                //    DialoguesViewModel.LoadSubtitle(Subtitle);
+                //    //修改选中编码
+                //    EncodingsBox.SelectedItem = streamReader.CurrentEncoding.EncodingName;
+                //}
                 {
                     _openedFile = file;
-
-                    var content = await streamReader.ReadToEndAsync().ConfigureAwait(true);
                     SubRipParser subRipParser = new SubRipParser();
-                    Subtitle = subRipParser.LoadFromString(content);
+                    Subtitle = subRipParser.LoadFromStream(stream.AsStream(), Encoding.UTF8);
                     DialoguesViewModel.LoadSubtitle(Subtitle);
                     //修改选中编码
-                    EncodingsBox.SelectedItem = streamReader.CurrentEncoding.EncodingName;
+                    //EncodingsBox.SelectedItem = streamReader.CurrentEncoding.EncodingName;
                 }
             }
         }

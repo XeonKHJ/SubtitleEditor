@@ -21,6 +21,7 @@ namespace SubtitleEditor.UWP.ViewModels
                 To = dialogue.To;
                 Line = dialogue.Line;
                 _isLoaded = true;
+                _dialogue = dialogue;
             }
             else
             {
@@ -69,6 +70,13 @@ namespace SubtitleEditor.UWP.ViewModels
             if(_isLoaded)
             {
                 PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+
+                switch(propertyName)
+                {
+                    case "Line":
+                        _dialogue.Line = this.Line;
+                        break;
+                }
             }
         }
         public event PropertyChangedEventHandler PropertyChanged;
