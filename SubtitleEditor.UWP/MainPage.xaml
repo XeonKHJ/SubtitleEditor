@@ -17,7 +17,7 @@
 
     <Grid>
         <Grid.Background>
-            <AcrylicBrush BackgroundSource="HostBackdrop"></AcrylicBrush>
+            <AcrylicBrush BackgroundSource="HostBackdrop" TintOpacity="0.85" TintLuminosityOpacity="0.7" TintColor="Black"></AcrylicBrush>
         </Grid.Background>
         <Grid.RowDefinitions>
             <RowDefinition Height="auto"></RowDefinition>
