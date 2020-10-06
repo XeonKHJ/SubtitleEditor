@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using System.Collections.ObjectModel;
 using SubtitleEditor.Subtitles;
 using System.Collections.Specialized;
+using Newtonsoft.Json;
 
 namespace SubtitleEditor.UWP.ViewModels
 {
@@ -15,7 +16,7 @@ namespace SubtitleEditor.UWP.ViewModels
         private readonly Stack<List<Operation>> _operationStack = new Stack<List<Operation>>();
         private Subtitle _subtitle;
 
-        public event PropertyChangedEventHandler SubtitleEdited;
+        //public event PropertyChangedEventHandler SubtitleEdited;
         public event NotifyCollectionChangedEventHandler DialoguesAddedOrDeleted;
 
         public DialoguesViewModelCollection()
@@ -80,7 +81,14 @@ namespace SubtitleEditor.UWP.ViewModels
         private void Subtitle_DialogueAdded(object sender, Dialogue e)
         {
             DialogueViewModel dialogueViewModel = new DialogueViewModel(e);
+            dialogueViewModel.PropertyChanged += DialogueViewModel_PropertyChanged;
+            dialogueViewModel.SubtitleEdited += DialogueViewModel_SubtitleEdited;
             this.Add(dialogueViewModel);
+        }
+
+        private void DialogueViewModel_SubtitleEdited(string propertyName, object oldItem, object newItem, string descrption)
+        {
+            
         }
 
         public void AddDialogue(string line)
@@ -97,16 +105,14 @@ namespace SubtitleEditor.UWP.ViewModels
             _subtitle.AddDialogue(dialogue);
         }
 
-        public void AddDialogue(DialogueViewModel dialogue)
-        {
-            
-        }
-
         private async void DialogueViewModel_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
             await Task.Run(() =>
             {
-                SubtitleEdited?.Invoke(sender, e);
+                
+                System.Diagnostics.Debug.WriteLine("编辑了字幕。");
+
+                //SubtitleEdited?.Invoke(sender, e);
             }).ConfigureAwait(false);
         }
     }

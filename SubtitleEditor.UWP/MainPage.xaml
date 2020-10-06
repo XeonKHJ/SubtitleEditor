@@ -62,6 +62,8 @@
                 <AppBarButton x:Name="OpenVideoBarButton" Icon="Video" Click="OpenVideoButton_Click" Label="导入视频"></AppBarButton>
                 <AppBarButton x:Name="SaveBarButton" Icon="Save" Click="SaveButton_Click" Label="保存"></AppBarButton>
                 <AppBarButton x:Name="SaveLocalBarButton" Icon="SaveLocal" Click="SaveLocalBarButton_Click" Label="另存为"></AppBarButton>
+                <AppBarButton x:Name="UndoButton" Icon="Undo" Click="UndoButton_Click" Label="撤销"></AppBarButton>
+                <AppBarButton x:Name="RedoButton" Icon="Redo" Click="RedoButton_Click" Label="重做"></AppBarButton>
                 <CommandBar.SecondaryCommands>
                     <AppBarButton Icon="Setting" Label="设置"></AppBarButton>
                 </CommandBar.SecondaryCommands>
@@ -75,7 +77,7 @@
             <Grid x:Name="VideoGrid" RelativePanel.Above="FramedTransportControls" RelativePanel.AlignRightWithPanel="True" 
                   RelativePanel.AlignLeftWithPanel="True" RelativePanel.AlignTopWithPanel="True">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition x:Name="VideoColumn" Width="auto"></ColumnDefinition>
+                    <ColumnDefinition x:Name="VideoColumn" Width="Auto"></ColumnDefinition>
                     <ColumnDefinition x:Name="SliderColumn" Width="auto"></ColumnDefinition>
                     <ColumnDefinition x:Name="EditorColumn" Width="1*"></ColumnDefinition>
                 </Grid.ColumnDefinitions>

@@ -44,8 +44,9 @@ namespace SubtitleEditor.UWP.ViewModels
         {
             set
             {
+                string oldValue = _line;
                 _line = value;
-                OnPropertyChanged();
+                OnPropertyChanged(oldValue, value);
             }
             get
             {
@@ -65,7 +66,7 @@ namespace SubtitleEditor.UWP.ViewModels
                 return To - From;
             }
         }
-        public void OnPropertyChanged([CallerMemberName] string propertyName = null)
+        public void OnPropertyChanged<T1, T2>(T1 oldValue, T2 newValue, [CallerMemberName] string propertyName = null)
         {
             if(_isLoaded)
             {
@@ -77,8 +78,16 @@ namespace SubtitleEditor.UWP.ViewModels
                         _dialogue.Line = this.Line;
                         break;
                 }
+
+                SubtitleEdited?.Invoke(propertyName, oldValue, newValue, "");
             }
         }
+
+        /// <summary>
+        /// 用于通知界面字幕更新的事件
+        /// </summary>
         public event PropertyChangedEventHandler PropertyChanged;
+
+        internal event ItemModifiedHandler<object, object> SubtitleEdited;
     }
 }

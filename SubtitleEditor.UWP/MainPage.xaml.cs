@@ -296,5 +296,15 @@ namespace SubtitleEditor.UWP
         {
 
         }
+
+        private void UndoButton_Click(object sender, RoutedEventArgs e)
+        {
+
+        }
+
+        private void RedoButton_Click(object sender, RoutedEventArgs e)
+        {
+
+        }
     }
 }
