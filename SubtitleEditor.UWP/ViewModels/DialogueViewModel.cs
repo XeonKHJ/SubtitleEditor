@@ -80,7 +80,7 @@ namespace SubtitleEditor.UWP.ViewModels
                         break;
                 }
 
-                SubtitleEdited?.Invoke(propertyName, oldValue, newValue, "");
+                DialogueEdited?.Invoke(propertyName, oldValue, newValue, "");
             }
         }
 
@@ -89,6 +89,6 @@ namespace SubtitleEditor.UWP.ViewModels
         /// </summary>
         public event PropertyChangedEventHandler PropertyChanged;
 
-        internal event ItemModifiedHandler<object, object> SubtitleEdited;
+        internal event ItemModifiedHandler<object, object> DialogueEdited;
     }
 }

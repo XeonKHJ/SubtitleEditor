@@ -84,7 +84,7 @@ namespace SubtitleEditor.UWP.ViewModels
         {
             DialogueViewModel dialogueViewModel = new DialogueViewModel(e);
             dialogueViewModel.PropertyChanged += DialogueViewModel_PropertyChanged;
-            dialogueViewModel.SubtitleEdited += DialogueViewModel_SubtitleEdited;
+            dialogueViewModel.DialogueEdited += DialogueViewModel_SubtitleEdited;
             this.Add(dialogueViewModel);
         }
 
