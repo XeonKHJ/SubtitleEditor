@@ -8,18 +8,16 @@ using System.Collections.ObjectModel;
 using SubtitleEditor.Subtitles;
 using System.Collections.Specialized;
 using Newtonsoft.Json;
+using SubtitleEditor.UWP.History;
 
 namespace SubtitleEditor.UWP.ViewModels
 {
-    public class DialoguesViewModelCollection : ObservableCollection<DialogueViewModel>
+    public class SubtitleViewModel : ObservableCollection<DialogueViewModel>
     {
-        private readonly Stack<List<Operation>> _operationStack = new Stack<List<Operation>>();
+        internal OperationRecorder HistoryRecorder { get; } = new OperationRecorder("NewFile");
         private Subtitle _subtitle;
 
-        //public event PropertyChangedEventHandler SubtitleEdited;
-        public event NotifyCollectionChangedEventHandler DialoguesAddedOrDeleted;
-
-        public DialoguesViewModelCollection()
+        public SubtitleViewModel()
         {
             //CollectionChanged += DialoguesViewModel_CollectionChanged;
         }
@@ -43,7 +41,7 @@ namespace SubtitleEditor.UWP.ViewModels
                     break;
             }
         }
-        public DialoguesViewModelCollection(Subtitle subtitle)
+        public SubtitleViewModel(Subtitle subtitle)
         {
             LoadSubtitle(subtitle);
         }
@@ -54,13 +52,17 @@ namespace SubtitleEditor.UWP.ViewModels
         /// <param name="subtitle">字幕实例</param>
         public void LoadSubtitle(Subtitle subtitle)
         {
+            //清楚视图模型中的字幕集合。
             Items.Clear();
 
             if (subtitle != null)
             {
                 _subtitle = subtitle;
+
+                //为字幕注册添加对话事件。
                 _subtitle.DialogueAdded += Subtitle_DialogueAdded;
 
+                //为视图模型重新添加新字幕中的对话。
                 foreach (var d in subtitle.Dialogues)
                 {
                     var dialogueViewModel = new DialogueViewModel(d);
@@ -88,7 +90,7 @@ namespace SubtitleEditor.UWP.ViewModels
 
         private void DialogueViewModel_SubtitleEdited(string propertyName, object oldItem, object newItem, string descrption)
         {
-            
+
         }
 
         public void AddDialogue(string line)

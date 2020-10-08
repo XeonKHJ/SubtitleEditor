@@ -50,7 +50,7 @@ namespace SubtitleEditor.UWP
             DialoguesViewModel.LoadSubtitle(Subtitle);
         }
         public Subtitle Subtitle { set; get; } = new Subtitle();
-        public DialoguesViewModelCollection DialoguesViewModel { get; } = new DialoguesViewModelCollection();
+        public SubtitleViewModel DialoguesViewModel { get; } = new SubtitleViewModel();
         private async void OpenButton_ClickAsync(object sender, RoutedEventArgs e)
         {
             var picker = new FileOpenPicker

@@ -36,7 +36,7 @@ namespace SubtitleEditor.UWP.History
         /// <param name="operation">要添加的操作</param>
         public void Push(Operation operation)
         {
-            this.Push(new OperationList(operation.EditType.ToString()));
+            this.Push(new OperationList(operation.Position.ToString()));
         }
     }
 
