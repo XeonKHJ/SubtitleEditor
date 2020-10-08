@@ -66,7 +66,7 @@ namespace SubtitleEditor.UWP.ViewModels
                 foreach (var d in subtitle.Dialogues)
                 {
                     var dialogueViewModel = new DialogueViewModel(d);
-                    dialogueViewModel.PropertyChanged += DialogueViewModel_PropertyChanged;
+                    RegisterEventForDialogueViewModel(dialogueViewModel);
                     Items.Add(dialogueViewModel);
                 }
 
@@ -80,17 +80,30 @@ namespace SubtitleEditor.UWP.ViewModels
             }
         }
 
+        /// <summary>
+        /// 当用户添加字幕时，字幕是添加到Subtitle中的，然后通过出发事件来添加到视图模型中。
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
         private void Subtitle_DialogueAdded(object sender, Dialogue e)
         {
             DialogueViewModel dialogueViewModel = new DialogueViewModel(e);
-            dialogueViewModel.PropertyChanged += DialogueViewModel_PropertyChanged;
-            dialogueViewModel.DialogueEdited += DialogueViewModel_SubtitleEdited;
+            RegisterEventForDialogueViewModel(dialogueViewModel);
             this.Add(dialogueViewModel);
         }
 
+        /// <summary>
+        /// 为新建的对话视图模型注册所需要的事件。
+        /// </summary>
+        /// <param name="dialogueViewModel"></param>
+        private void RegisterEventForDialogueViewModel(DialogueViewModel dialogueViewModel)
+        {
+            dialogueViewModel.PropertyChanged += DialogueViewModel_PropertyChanged;
+            dialogueViewModel.DialogueEdited += DialogueViewModel_SubtitleEdited;
+        }
         private void DialogueViewModel_SubtitleEdited(string propertyName, object oldItem, object newItem, string descrption)
         {
-
+            System.Diagnostics.Debug.WriteLine("DialogueViewModel_SubtitleEdited");
         }
 
         public void AddDialogue(string line)
@@ -111,9 +124,7 @@ namespace SubtitleEditor.UWP.ViewModels
         {
             await Task.Run(() =>
             {
-                
                 System.Diagnostics.Debug.WriteLine("编辑了字幕。");
-
                 //SubtitleEdited?.Invoke(sender, e);
             }).ConfigureAwait(false);
         }
