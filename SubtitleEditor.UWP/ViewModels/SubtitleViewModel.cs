@@ -14,7 +14,7 @@ namespace SubtitleEditor.UWP.ViewModels
 {
     public class SubtitleViewModel : ObservableCollection<DialogueViewModel>
     {
-        internal OperationRecorder HistoryRecorder { get; } = new OperationRecorder("NewFile");
+        public OperationRecorder OperationRecorder { get; } = new OperationRecorder("NewFile");
         private Subtitle _subtitle;
 
         public SubtitleViewModel()
@@ -66,7 +66,7 @@ namespace SubtitleEditor.UWP.ViewModels
                 foreach (var d in subtitle.Dialogues)
                 {
                     var dialogueViewModel = new DialogueViewModel(d);
-                    RegisterEventForDialogueViewModel(dialogueViewModel);
+                    RegisterEventsForDialogueViewModel(dialogueViewModel);
                     Items.Add(dialogueViewModel);
                 }
 
@@ -88,7 +88,7 @@ namespace SubtitleEditor.UWP.ViewModels
         private void Subtitle_DialogueAdded(object sender, Dialogue e)
         {
             DialogueViewModel dialogueViewModel = new DialogueViewModel(e);
-            RegisterEventForDialogueViewModel(dialogueViewModel);
+            RegisterEventsForDialogueViewModel(dialogueViewModel);
             this.Add(dialogueViewModel);
         }
 
@@ -96,11 +96,32 @@ namespace SubtitleEditor.UWP.ViewModels
         /// 为新建的对话视图模型注册所需要的事件。
         /// </summary>
         /// <param name="dialogueViewModel"></param>
-        private void RegisterEventForDialogueViewModel(DialogueViewModel dialogueViewModel)
+        private void RegisterEventsForDialogueViewModel(DialogueViewModel dialogueViewModel)
         {
             dialogueViewModel.PropertyChanged += DialogueViewModel_PropertyChanged;
             dialogueViewModel.DialogueEdited += DialogueViewModel_SubtitleEdited;
         }
+
+        /// <summary>
+        /// 为操作记录器注册事件。
+        /// </summary>
+        /// <param name="recorder"></param>
+        private void RegisterEventsForOperationRecorder(OperationRecorder recorder)
+        {
+            recorder.Undoing += Recorder_Undoing;
+            recorder.Redoing += Recorder_Redoing;
+        }
+
+        private void Recorder_Redoing(OperationStack operations, DateTime recordTime)
+        {
+            throw new NotImplementedException();
+        }
+
+        private void Recorder_Undoing(OperationStack operations, DateTime recordTime)
+        {
+            throw new NotImplementedException();
+        }
+
         private void DialogueViewModel_SubtitleEdited(string propertyName, object oldItem, object newItem, string descrption)
         {
             System.Diagnostics.Debug.WriteLine("DialogueViewModel_SubtitleEdited");

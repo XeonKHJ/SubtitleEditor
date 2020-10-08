@@ -62,7 +62,8 @@ namespace SubtitleEditor.UWP.History
         public OperationStack Undo()
         {
             var stack = Pop();
-            Undoing(stack.Item1, stack.Item2);
+
+            Undoing?.Invoke(stack.Item1, stack.Item2);
 
             return stack.Item1;
         }
@@ -70,13 +71,13 @@ namespace SubtitleEditor.UWP.History
         public OperationStack Redo()
         {
             var stack = RedoStack.Pop();
-            Redoing(stack.Item1, stack.Item2);
+            Redoing?.Invoke(stack.Item1, stack.Item2);
             return stack.Item1;
         }
 
         public delegate void DoingEventHandler(OperationStack operations, DateTime recordTime);
-        public DoingEventHandler Undoing;
-        public DoingEventHandler Redoing;
+        public event DoingEventHandler Undoing;
+        public event DoingEventHandler Redoing;
     }
 
     internal delegate void ItemModifiedHandler<in T, in U>(string propertyName, T oldItem, U newItem, string descrption);
