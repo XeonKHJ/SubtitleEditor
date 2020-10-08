@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace SubtitleEditor.UWP.History
 {
-    internal class OperationList : List<Operation>
+    public class OperationStack : Stack<Operation>
     {
         public string Name { set; get; } = string.Empty;
 
@@ -14,7 +14,7 @@ namespace SubtitleEditor.UWP.History
         /// 创建一个空操作列表
         /// </summary>
         /// <param name="listName">列表名字</param>
-        public OperationList(string listName)
+        public OperationStack(string listName)
         {
             Name = listName;
         }
@@ -24,9 +24,9 @@ namespace SubtitleEditor.UWP.History
         /// </summary>
         /// <param name="operation"></param>
         /// <param name="listName">列表名字</param>
-        public OperationList(Operation operation, string listName)
+        public OperationStack(Operation operation, string listName)
         {
-            this.Add(operation);
+            this.Push(operation);
         }
     }
 }

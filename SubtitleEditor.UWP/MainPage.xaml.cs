@@ -33,6 +33,7 @@ using System.Text;
 using System.ComponentModel;
 using Windows.System;
 using System.Collections.Specialized;
+using SubtitleEditor.UWP.History;
 
 // https://go.microsoft.com/fwlink/?LinkId=402352&clcid=0x804 上介绍了“空白页”项模板
 
@@ -51,6 +52,12 @@ namespace SubtitleEditor.UWP
         }
         public Subtitle Subtitle { set; get; } = new Subtitle();
         public SubtitleViewModel DialoguesViewModel { get; } = new SubtitleViewModel();
+
+        /// <summary>
+        /// 历史记录器。
+        /// 每次新建或打开一个新的字幕文件时需要重新创建。
+        /// </summary>
+        internal OperationRecorder HistoryRecorder { get; set; } = new OperationRecorder();
         private async void OpenButton_ClickAsync(object sender, RoutedEventArgs e)
         {
             var picker = new FileOpenPicker
@@ -75,8 +82,6 @@ namespace SubtitleEditor.UWP
                 try
                 {
                     await mediaPlayer.LoadFileAsync(file).ConfigureAwait(true);
-
-
                     var path = file.Path;
 
                     await Dispatcher.RunAsync(CoreDispatcherPriority.Normal, () =>
@@ -168,6 +173,8 @@ namespace SubtitleEditor.UWP
                     //修改选中编码
                     //EncodingsBox.SelectedItem = streamReader.CurrentEncoding.EncodingName;
                 }
+
+                HistoryRecorder = new OperationRecorder(file.FolderRelativeId);
             }
         }
 
