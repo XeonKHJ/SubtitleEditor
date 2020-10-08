@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Windows.Storage;
 
-namespace SubtitleEditor.UWP.Operation
+namespace SubtitleEditor.UWP.History
 {
     /// <summary>
     /// 操作记录器，用于记录对字幕的每一个操作。每个操作记录器对应一个编辑的字幕。

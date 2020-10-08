@@ -133,9 +133,9 @@
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ViewModels\DialogueViewModel.cs" />
-    <Compile Include="Operation\Operation.cs" />
-    <Compile Include="Operation\OperationList.cs" />
-    <Compile Include="Operation\OperationRecorder.cs" />
+    <Compile Include="History\Operation.cs" />
+    <Compile Include="History\OperationList.cs" />
+    <Compile Include="History\OperationRecorder.cs" />
   </ItemGroup>
   <ItemGroup>
     <AppxManifest Include="Package.appxmanifest">

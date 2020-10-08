@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace SubtitleEditor.UWP.Operation
+namespace SubtitleEditor.UWP.History
 {
     internal class OperationList : List<Operation>
     {
