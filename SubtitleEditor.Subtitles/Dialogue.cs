@@ -6,8 +6,9 @@ namespace SubtitleEditor.Subtitles
 {
     public class Dialogue
     {
-        public Dialogue(TimeSpan from, TimeSpan to, string line)
+        public Dialogue(int no, TimeSpan from, TimeSpan to, string line)
         {
+            No = no;
             From = from;
             To = to;
             Line = line;

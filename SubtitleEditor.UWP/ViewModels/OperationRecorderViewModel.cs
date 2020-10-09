@@ -98,6 +98,7 @@ namespace SubtitleEditor.UWP.ViewModels
         {
             _recorder = recorder;
             RegisterEventsForRecorder();
+            UpdateButtonStatus(null, null);
         }
 
         public void Undo()

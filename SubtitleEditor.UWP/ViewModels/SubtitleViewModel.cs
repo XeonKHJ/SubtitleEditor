@@ -58,7 +58,7 @@ namespace SubtitleEditor.UWP.ViewModels
             }
 
             //创建对话逻辑模型。
-            Dialogue dialogue = new Dialogue(beginTime, beginTime, line);
+            Dialogue dialogue = new Dialogue(this.Count + 1, beginTime, beginTime, line);
 
             //通过对话逻辑模型创建视图模型。
             DialogueViewModel dialogueViewModel = new DialogueViewModel(dialogue);
@@ -74,7 +74,21 @@ namespace SubtitleEditor.UWP.ViewModels
             Operation operation = new Operation("Items", this, OperationType.Add, null, dialogueViewModel);
             OperationRecorder.Record(operation);
         }
+        
+        public void AddDialogue(DialogueViewModel dialogueViewModel)
+        {
+            if(dialogueViewModel != null)
+            {
+                Dialogue dialogue = dialogueViewModel.ToDialogue();
+                _subtitle.AddDialogue(dialogue);
 
+                this.Add(dialogueViewModel);
+
+                //添加到历史
+                Operation operation = new Operation("Items", this, OperationType.Add, null, dialogueViewModel);
+                OperationRecorder.Record(operation);
+            }
+        }
 
         /// <summary>
         /// 将字幕加载进该视图模型
@@ -140,6 +154,22 @@ namespace SubtitleEditor.UWP.ViewModels
         }
 
 
+        private void RemoveDialogue(DialogueViewModel viewModel)
+        {
+            this.RemoveAt(viewModel.No - 1);
+            _subtitle.DeleteDialogueByIndex(viewModel.No - 1);
+
+            //所有后面的对话的
+            for(int i = viewModel.No -1; i < Count; ++i)
+            {
+                Items[i].No = i;
+            }
+
+            Operation operation = new Operation("Items", this, OperationType.Delete, viewModel, null);
+            OperationRecorder.Record(operation);
+        }
+
+
         #region 与历史记录操作有关
         /// <summary>
         /// 为操作记录器注册事件。
@@ -157,30 +187,53 @@ namespace SubtitleEditor.UWP.ViewModels
         /// </summary>
         /// <param name="operations"></param>
         /// <param name="recordTime"></param>
-        private void Recorder_Redoing(OperationStack operations, DateTime recordTime)
+        private static void Recorder_Redoing(OperationStack operations, DateTime recordTime)
         {
-            while(operations.Count != 0)
+            if(operations != null)
             {
-                var operation = operations.Pop();
-                
-                if(operation.ChangeeObject is DialogueViewModel)
+                var clonedOps = new Stack<Operation>(operations);
+
+                while (clonedOps.Count != 0)
                 {
-                    var dialogueViewModel = operation.ChangeeObject as DialogueViewModel;
-                    switch (operation.Type)
+                    var operation = clonedOps.Pop();
+
+                    if (operation.ChangeeObject is DialogueViewModel)
                     {
-                        case OperationType.Modify:
-                            {
-                                switch(operation.PropertyName)
+                        var dialogueViewModel = operation.ChangeeObject as DialogueViewModel;
+                        switch (operation.Type)
+                        {
+                            case OperationType.Modify:
                                 {
-                                    case "Line":
-                                        dialogueViewModel.Line = (string)operation.NewValue;
-                                        break;
+                                    switch (operation.PropertyName)
+                                    {
+                                        case "Line":
+                                            dialogueViewModel.Line = (string)operation.NewValue;
+                                            break;
+                                    }
                                 }
-                            }
-                            break;
+                                break;
+                        }
+                    }
+                    else if (operation.ChangeeObject is SubtitleViewModel)
+                    {
+                        var subtitleViewModel = operation.ChangeeObject as SubtitleViewModel;
+                        switch (operation.Type)
+                        {
+                            case OperationType.Add:
+                                {
+                                    switch (operation.PropertyName)
+                                    {
+                                        case "Items":
+                                            subtitleViewModel.AddDialogue(operation.NewValue as DialogueViewModel);
+                                            break;
+                                    }
+                                }
+                                break;
+                        }
                     }
                 }
             }
+            
         }
 
         /// <summary>
@@ -188,11 +241,15 @@ namespace SubtitleEditor.UWP.ViewModels
         /// </summary>
         /// <param name="operations"></param>
         /// <param name="recordTime"></param>
-        private void Recorder_Undoing(OperationStack operations, DateTime recordTime)
+        private static void Recorder_Undoing(OperationStack operations, DateTime recordTime)
         {
-            while (operations.Count != 0)
+            
+            if(operations != null)
             {
-                var operation = operations.Pop();
+                var clonedOps = new Stack<Operation>(operations);
+                while (clonedOps.Count != 0)
+            {
+                var operation = clonedOps.Pop();
 
                 if (operation.ChangeeObject is DialogueViewModel)
                 {
@@ -211,7 +268,26 @@ namespace SubtitleEditor.UWP.ViewModels
                             break;
                     }
                 }
+                else if(operation.ChangeeObject is SubtitleViewModel)
+                {
+                    var subtitleViewModel = operation.ChangeeObject as SubtitleViewModel;
+                    switch(operation.Type)
+                    {
+                        case OperationType.Add:
+                            {
+                                switch(operation.PropertyName)
+                                {
+                                    case "Items":
+                                        subtitleViewModel.RemoveDialogue(operation.NewValue as DialogueViewModel);
+                                        break;
+                                }
+                            }
+                            break;
+                    }
+                }
             }
+            }
+            
         }
         #endregion
 

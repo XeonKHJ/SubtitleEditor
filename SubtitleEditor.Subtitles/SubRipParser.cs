@@ -43,10 +43,9 @@ namespace SubtitleEditor.Subtitles
                         line += (dia.Lines[i] + System.Environment.NewLine);
                     }
                 }
-                Dialogue dialogue = new Dialogue(new TimeSpan(0, 0, 0, 0, dia.StartTime), new TimeSpan(0, 0, 0, 0, dia.EndTime), line)
-                {
-                    No = ++no
-                };
+
+                Dialogue dialogue = new Dialogue(++no, new TimeSpan(0, 0, 0, 0, dia.StartTime), new TimeSpan(0, 0, 0, 0, dia.EndTime), line);
+
                 subtitle.AddDialogue(dialogue);
             }
             return subtitle;
