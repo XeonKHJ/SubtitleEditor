@@ -75,13 +75,14 @@ namespace SubtitleEditor.UWP.History
         /// <param name="operation">要添加的操作</param>
         public void Record(Operation operation)
         {
-            if(operation != null)
+            if(operation != null && IsRecording)
             {
-                var stack = new OperationStack(operation.Position.ToString());
+                var stack = new OperationStack(operation.PropertyName.ToString());
                 stack.Push(operation);
                 var recordTime = DateTime.Now;
                 Recording?.Invoke(stack, recordTime);
                 UndoStack.Push(new Tuple<OperationStack, DateTime>(stack, recordTime));
+                RedoStack.Clear();
                 Recorded?.Invoke(stack, recordTime);
             }
         }
@@ -92,21 +93,30 @@ namespace SubtitleEditor.UWP.History
         /// <returns></returns>
         public OperationStack Undo()
         {
+            IsRecording = false;
             var stack = UndoStack.Pop();
 
             Undoing?.Invoke(stack.Item1, stack.Item2);
 
+            RedoStack.Push(stack);
             Undone?.Invoke(stack.Item1, stack.Item2);
+
+            IsRecording = true;
             return stack.Item1;
         }
 
         public OperationStack Redo()
         {
+            IsRecording = false;
             var stack = RedoStack.Pop();
             Redoing?.Invoke(stack.Item1, stack.Item2);
+            UndoStack.Push(stack);
             Redone?.Invoke(stack.Item1, stack.Item2);
+            IsRecording = true;
             return stack.Item1;
         }
+
+        public bool IsRecording { set; get; } = true;
 
         public delegate void RecorderEventHandler(OperationStack operations, DateTime recordTime);
         public event RecorderEventHandler Undoing;
@@ -116,6 +126,4 @@ namespace SubtitleEditor.UWP.History
         public event RecorderEventHandler Redone;
         public event RecorderEventHandler Undone;
     }
-
-    internal delegate void ItemModifiedHandler<in T, in U>(string propertyName, T oldItem, U newItem, string descrption);
 }

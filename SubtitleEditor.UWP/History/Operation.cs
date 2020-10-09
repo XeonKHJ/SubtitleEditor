@@ -9,14 +9,17 @@ namespace SubtitleEditor.UWP.History
     public enum OperationType { Modify, Add, Delete}
     public class Operation
     {
-        public Operation(string position, OperationType type, object oldValue, object newValue)
+        public Operation(string position, object changeeObject, OperationType type, object oldValue, object newValue)
         {
-            Position = position;
+            PropertyName = position;
             Type = type;
             OldValue = oldValue;
             NewValue = newValue;
+            ChangeeObject = changeeObject;
         }
-        public string Position { private set; get; }
+        
+        public object ChangeeObject {private set; get; }
+        public string PropertyName { private set; get; }
         public OperationType Type { private set; get; }
 
         public object OldValue { private set; get; }
