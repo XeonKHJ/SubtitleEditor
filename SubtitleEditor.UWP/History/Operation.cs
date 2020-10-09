@@ -12,6 +12,9 @@ namespace SubtitleEditor.UWP.History
         public Operation(string position, OperationType type, object oldValue, object newValue)
         {
             Position = position;
+            Type = type;
+            OldValue = oldValue;
+            NewValue = newValue;
         }
         public string Position { private set; get; }
         public OperationType Type { private set; get; }

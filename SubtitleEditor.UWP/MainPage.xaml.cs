@@ -49,7 +49,23 @@ namespace SubtitleEditor.UWP
             this.InitializeComponent();
             mediaPlayer.MediaOpened += MediaPlayer_MediaOpenedAsync;
             DialoguesViewModel.LoadSubtitle(Subtitle);
+            OperationRecorderViewModel.LoadRecorder(DialoguesViewModel.OperationRecorder);
+            OperationRecorderViewModel.PropertyChanged += OperationRecorderViewModel_PropertyChanged;
         }
+
+        private void OperationRecorderViewModel_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            switch(e.PropertyName)
+            {
+                case "IsUndoEnable":
+                    UndoButton.IsEnabled = OperationRecorderViewModel.IsUndoEnable;
+                    break;
+                case "IsRedoEnable":
+                    RedoButton.IsEnabled = OperationRecorderViewModel.IsRedoEnable;
+                    break;
+            }
+        }
+
         public Subtitle Subtitle { set; get; } = new Subtitle();
         public SubtitleViewModel DialoguesViewModel { get; } = new SubtitleViewModel();
 
@@ -306,12 +322,12 @@ namespace SubtitleEditor.UWP
 
         private void UndoButton_Click(object sender, RoutedEventArgs e)
         {
-
+            OperationRecorderViewModel.Undo();
         }
 
         private void RedoButton_Click(object sender, RoutedEventArgs e)
         {
-
+            OperationRecorderViewModel.Redo();
         }
     }
 }

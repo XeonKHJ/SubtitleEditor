@@ -24,9 +24,11 @@ namespace SubtitleEditor.Subtitles
         public void DeleteDialogue(Dialogue dialogue)
         {
             _dialogues.Remove(dialogue);
+            DialogueDeleted?.Invoke(this, dialogue);
         }
 
 
         public event EventHandler<Dialogue> DialogueAdded;
+        public event EventHandler<Dialogue> DialogueDeleted;
     }
 }

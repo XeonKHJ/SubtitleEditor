@@ -17,21 +17,47 @@ namespace SubtitleEditor.UWP.ViewModels
         public OperationRecorderViewModel(OperationRecorder recorder)
         {
             _recorder = recorder;
+            RegisterEventsForRecorder();
+            UpdateButtonStatus(null, null);
         }
 
         public OperationRecorderViewModel()
         {
-            this.CollectionChanged += OperationRecorderViewModel_CollectionChanged;
+            
         }
 
         private void RegisterEventsForRecorder()
         {
-            
+            if(_recorder != null)
+            {
+                _recorder.Recorded += Recorder_Recorded;
+                _recorder.Undone += Recorder_Undone;
+                _recorder.Redone += Recorder_Redone;
+            }
         }
 
-        private void OperationRecorderViewModel_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
+        private void Recorder_Redone(OperationStack operations, DateTime recordTime)
         {
-            IsUndoEnable = (Items.Count == 0);
+            System.Diagnostics.Debug.WriteLine("Recorder_Redone");
+            UpdateButtonStatus(null, null);
+        }
+
+        private void Recorder_Undone(OperationStack operations, DateTime recordTime)
+        {
+            System.Diagnostics.Debug.WriteLine("Recorder_Undone");
+            UpdateButtonStatus(null, null);
+        }
+
+        private void Recorder_Recorded(OperationStack operations, DateTime recordTime)
+        {
+            System.Diagnostics.Debug.WriteLine("Recorder_Recorded");
+            UpdateButtonStatus(null, null);
+        }
+
+        private void UpdateButtonStatus(object sender, NotifyCollectionChangedEventArgs e)
+        {
+            IsUndoEnable = (_recorder.UndoStack.Count != 0);
+            IsRedoEnable = (_recorder.RedoStack.Count != 0);
         }
 
         private bool _isRedoEnable;
@@ -71,6 +97,17 @@ namespace SubtitleEditor.UWP.ViewModels
         public void LoadRecorder(OperationRecorder recorder)
         {
             _recorder = recorder;
+            RegisterEventsForRecorder();
+        }
+
+        public void Undo()
+        {
+            _recorder.Undo();
+        }
+
+        public void Redo()
+        {
+            _recorder.Redo();
         }
     }
 }

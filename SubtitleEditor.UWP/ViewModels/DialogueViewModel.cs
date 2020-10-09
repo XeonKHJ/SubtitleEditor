@@ -45,9 +45,9 @@ namespace SubtitleEditor.UWP.ViewModels
         {
             set
             {
-                string oldValue = _line;
+                var oldValue = this.ToDialogue();
                 _line = value;
-                OnPropertyChanged(oldValue, value);
+                OnPropertyChanged(oldValue, _dialogue);
             }
             get
             {
@@ -67,7 +67,7 @@ namespace SubtitleEditor.UWP.ViewModels
                 return To - From;
             }
         }
-        public void OnPropertyChanged<T1, T2>(T1 oldValue, T2 newValue, [CallerMemberName] string propertyName = null)
+        public void OnPropertyChanged(Dialogue oldValue, Dialogue newValue, [CallerMemberName] string propertyName = null)
         {
             if(_isLoaded)
             {
@@ -80,7 +80,7 @@ namespace SubtitleEditor.UWP.ViewModels
                         break;
                 }
 
-                DialogueEdited?.Invoke(propertyName, oldValue, newValue, "");
+                DialogueEdited?.Invoke("Dialogue", oldValue, newValue, "");
             }
         }
 

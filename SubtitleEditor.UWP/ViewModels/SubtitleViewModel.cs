@@ -14,7 +14,7 @@ namespace SubtitleEditor.UWP.ViewModels
 {
     public class SubtitleViewModel : ObservableCollection<DialogueViewModel>
     {
-        public OperationRecorder OperationRecorder { get; } = new OperationRecorder("NewFile");
+        public OperationRecorder OperationRecorder { get; private set; } = new OperationRecorder(string.Empty);
         private Subtitle _subtitle;
 
         public SubtitleViewModel()
@@ -96,6 +96,9 @@ namespace SubtitleEditor.UWP.ViewModels
                 //AddNewBlankDialogueViewModel();
 
                 OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
+
+                OperationRecorder = new OperationRecorder();
+                RegisterEventsForOperationRecorder(OperationRecorder);
             }
             else
             {
@@ -123,23 +126,16 @@ namespace SubtitleEditor.UWP.ViewModels
         {
             DialogueViewModel dialogueViewModel = new DialogueViewModel(e);
             RegisterEventsForDialogueViewModel(dialogueViewModel);
+
+            //添加到历史
+            Operation operation = new Operation("Dialogue", OperationType.Add, null, e);
+            OperationRecorder.Record(operation);
+
             this.Add(dialogueViewModel);
         }
 
 
         #region 与历史记录操作有关
-        /// <summary>
-        /// 当字幕经过编辑时，会触发该函数。
-        /// </summary>
-        /// <param name="propertyName"></param>
-        /// <param name="oldItem"></param>
-        /// <param name="newItem"></param>
-        /// <param name="descrption"></param>
-        private void DialogueViewModel_SubtitleEdited(string propertyName, object oldItem, object newItem, string descrption)
-        {
-            System.Diagnostics.Debug.WriteLine("DialogueViewModel_SubtitleEdited");
-        }
-
         /// <summary>
         /// 为操作记录器注册事件。
         /// </summary>
@@ -148,6 +144,19 @@ namespace SubtitleEditor.UWP.ViewModels
         {
             recorder.Undoing += Recorder_Undoing;
             recorder.Redoing += Recorder_Redoing;
+        }
+
+        /// <summary>
+        /// 字幕经过编辑时会触发该函数。
+        /// </summary>
+        /// <param name="propertyName"></param>
+        /// <param name="oldItem"></param>
+        /// <param name="newItem"></param>
+        /// <param name="descrption"></param>
+        private void DialogueViewModel_SubtitleEdited(string propertyName, object oldItem, object newItem, string descrption)
+        {
+            Operation operation = new Operation(propertyName, OperationType.Modify, oldItem, newItem);
+            OperationRecorder.Record(operation);
         }
 
         /// <summary>
@@ -209,6 +218,14 @@ namespace SubtitleEditor.UWP.ViewModels
                 switch (operation.Position)
                 {
                     case "Dialogue":
+                        {
+                            switch (operation.Type)
+                            {
+                                case OperationType.Add:
+                                    this.Remove(operation.NewValue as Dialogue);
+                                    break;
+                            }
+                        }
                         break;
                     case "Subtitle":
                         break;
