@@ -135,7 +135,7 @@
     <Compile Include="History\Operation.cs" />
     <Compile Include="History\OperationStack.cs" />
     <Compile Include="History\OperationRecorder.cs" />
-    <Compile Include="ViewModels\HistoryViewModel.cs" />
+    <Compile Include="ViewModels\OperationRecorderViewModel.cs" />
   </ItemGroup>
   <ItemGroup>
     <AppxManifest Include="Package.appxmanifest">

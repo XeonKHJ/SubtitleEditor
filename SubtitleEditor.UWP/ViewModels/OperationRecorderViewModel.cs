@@ -7,21 +7,31 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
+using System.Collections.Specialized;
 
 namespace SubtitleEditor.UWP.ViewModels
 {
-    public class HistoryViewModel : ObservableCollection<DialogueViewModel>, INotifyPropertyChanged
+    public class OperationRecorderViewModel : ObservableCollection<DialogueViewModel>, INotifyPropertyChanged
     {
         private OperationRecorder _recorder;
-
-        public HistoryViewModel(OperationRecorder recorder)
+        public OperationRecorderViewModel(OperationRecorder recorder)
         {
             _recorder = recorder;
         }
 
-        public HistoryViewModel()
+        public OperationRecorderViewModel()
         {
+            this.CollectionChanged += OperationRecorderViewModel_CollectionChanged;
+        }
 
+        private void RegisterEventsForRecorder()
+        {
+            
+        }
+
+        private void OperationRecorderViewModel_CollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
+        {
+            IsUndoEnable = (Items.Count == 0);
         }
 
         private bool _isRedoEnable;

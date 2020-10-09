@@ -46,6 +46,29 @@ namespace SubtitleEditor.UWP.ViewModels
             LoadSubtitle(subtitle);
         }
 
+        public void AddDialogue(string line)
+        {
+            TimeSpan beginTime;
+
+            if (this.Count > 0)
+            {
+                beginTime = this.Last().To;
+            }
+
+            Dialogue dialogue = new Dialogue(beginTime, beginTime, line);
+
+            _subtitle.AddDialogue(dialogue);
+        }
+
+        private async void DialogueViewModel_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            await Task.Run(() =>
+            {
+                System.Diagnostics.Debug.WriteLine("编辑了字幕。");
+                //SubtitleEdited?.Invoke(sender, e);
+            }).ConfigureAwait(false);
+        }
+
         /// <summary>
         /// 将字幕加载进该视图模型
         /// </summary>
@@ -80,17 +103,6 @@ namespace SubtitleEditor.UWP.ViewModels
             }
         }
 
-        /// <summary>
-        /// 当用户添加字幕时，字幕是添加到Subtitle中的，然后通过出发事件来添加到视图模型中。
-        /// </summary>
-        /// <param name="sender"></param>
-        /// <param name="e"></param>
-        private void Subtitle_DialogueAdded(object sender, Dialogue e)
-        {
-            DialogueViewModel dialogueViewModel = new DialogueViewModel(e);
-            RegisterEventsForDialogueViewModel(dialogueViewModel);
-            this.Add(dialogueViewModel);
-        }
 
         /// <summary>
         /// 为新建的对话视图模型注册所需要的事件。
@@ -103,6 +115,32 @@ namespace SubtitleEditor.UWP.ViewModels
         }
 
         /// <summary>
+        /// 当用户添加字幕时，字幕是添加到Subtitle中的，然后通过出发事件来添加到视图模型中。
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void Subtitle_DialogueAdded(object sender, Dialogue e)
+        {
+            DialogueViewModel dialogueViewModel = new DialogueViewModel(e);
+            RegisterEventsForDialogueViewModel(dialogueViewModel);
+            this.Add(dialogueViewModel);
+        }
+
+
+        #region 与历史记录操作有关
+        /// <summary>
+        /// 当字幕经过编辑时，会触发该函数。
+        /// </summary>
+        /// <param name="propertyName"></param>
+        /// <param name="oldItem"></param>
+        /// <param name="newItem"></param>
+        /// <param name="descrption"></param>
+        private void DialogueViewModel_SubtitleEdited(string propertyName, object oldItem, object newItem, string descrption)
+        {
+            System.Diagnostics.Debug.WriteLine("DialogueViewModel_SubtitleEdited");
+        }
+
+        /// <summary>
         /// 为操作记录器注册事件。
         /// </summary>
         /// <param name="recorder"></param>
@@ -112,42 +150,72 @@ namespace SubtitleEditor.UWP.ViewModels
             recorder.Redoing += Recorder_Redoing;
         }
 
+        /// <summary>
+        /// 定义撤销操作。
+        /// </summary>
+        /// <param name="operations"></param>
+        /// <param name="recordTime"></param>
         private void Recorder_Redoing(OperationStack operations, DateTime recordTime)
         {
-            throw new NotImplementedException();
+            while(operations.Count != 0)
+            {
+                var operation = operations.Pop();
+                switch(operation.Position)
+                {
+                    case "Dialogue":
+                        {
+                            switch (operation.Type)
+                            {
+                                case OperationType.Add:
+                                    {
+                                        var dialogue = operation.NewValue as Dialogue;
+                                        _subtitle.DeleteDialogue(dialogue);
+                                    }
+                                    break;
+                                case OperationType.Delete:
+                                    {
+                                        var dialogue = operation.OldValue as Dialogue;
+                                        _subtitle.AddDialogue(dialogue);
+                                    }
+                                    break;
+                                case OperationType.Modify:
+                                    {
+                                        var newDialogue = operation.NewValue as Dialogue;
+                                        var oldDialogue = operation.OldValue as Dialogue;
+                                        _subtitle.DeleteDialogue(newDialogue);
+                                        _subtitle.AddDialogue(oldDialogue);
+                                    }
+                                    break;
+                            }
+                                
+                        }
+                        break;
+                    case "Subtitle":
+                        break;
+                }
+            }
         }
 
+        /// <summary>
+        /// 定义重做操作
+        /// </summary>
+        /// <param name="operations"></param>
+        /// <param name="recordTime"></param>
         private void Recorder_Undoing(OperationStack operations, DateTime recordTime)
         {
-            throw new NotImplementedException();
-        }
-
-        private void DialogueViewModel_SubtitleEdited(string propertyName, object oldItem, object newItem, string descrption)
-        {
-            System.Diagnostics.Debug.WriteLine("DialogueViewModel_SubtitleEdited");
-        }
-
-        public void AddDialogue(string line)
-        {
-            TimeSpan beginTime;
-            
-            if(this.Count > 0)
+            while (operations.Count != 0)
             {
-                beginTime = this.Last().To;
+                var operation = operations.Pop();
+                switch (operation.Position)
+                {
+                    case "Dialogue":
+                        break;
+                    case "Subtitle":
+                        break;
+                }
             }
-
-            Dialogue dialogue = new Dialogue(beginTime, beginTime, line);
-
-            _subtitle.AddDialogue(dialogue);
         }
+        #endregion
 
-        private async void DialogueViewModel_PropertyChanged(object sender, PropertyChangedEventArgs e)
-        {
-            await Task.Run(() =>
-            {
-                System.Diagnostics.Debug.WriteLine("编辑了字幕。");
-                //SubtitleEdited?.Invoke(sender, e);
-            }).ConfigureAwait(false);
-        }
     }
 }

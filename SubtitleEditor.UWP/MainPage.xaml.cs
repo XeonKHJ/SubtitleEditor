@@ -57,7 +57,7 @@ namespace SubtitleEditor.UWP
         /// 历史记录器。
         /// 每次新建或打开一个新的字幕文件时需要重新创建。
         /// </summary>
-        internal OperationRecorder HistoryRecorder { get; set; } = new OperationRecorder();
+        public OperationRecorderViewModel OperationRecorderViewModel { get; } = new OperationRecorderViewModel();
         private async void OpenButton_ClickAsync(object sender, RoutedEventArgs e)
         {
             var picker = new FileOpenPicker
@@ -174,7 +174,7 @@ namespace SubtitleEditor.UWP
                     //EncodingsBox.SelectedItem = streamReader.CurrentEncoding.EncodingName;
                 }
 
-                HistoryRecorder = new OperationRecorder(file.FolderRelativeId);
+                OperationRecorderViewModel.LoadRecorder(DialoguesViewModel.OperationRecorder);
             }
         }
 

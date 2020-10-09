@@ -11,11 +11,13 @@ namespace SubtitleEditor.UWP.History
     /// <summary>
     /// 操作记录器，用于记录对字幕的每一个操作。每个操作记录器对应一个编辑的字幕。
     /// </summary>
-    public class OperationRecorder : Stack<Tuple<OperationStack, DateTime>>
+    public class OperationRecorder
     {
         public enum DoingType { Redo, Undo};
 
-        private Stack<Tuple<OperationStack, DateTime>> RedoStack = new Stack<Tuple<OperationStack, DateTime>>();
+        public Stack<Tuple<OperationStack, DateTime>> RedoStack { get; } = new Stack<Tuple<OperationStack, DateTime>>();
+        public Stack<Tuple<OperationStack, DateTime>> UndoStack { get; } = new Stack<Tuple<OperationStack, DateTime>>();
+
         /// <summary>
         /// 每个记录器要有一个ID用于于一个文件对应
         /// </summary>
@@ -43,7 +45,13 @@ namespace SubtitleEditor.UWP.History
         /// <param name="operationTime"></param>
         public void Push(OperationStack operations, DateTime operationTime)
         {
-            this.Push(new Tuple<OperationStack, DateTime>(operations, operationTime));
+            if(operations != null)
+            {
+                Recording?.Invoke(operations, operationTime);
+                UndoStack.Push(new Tuple<OperationStack, DateTime>(operations, operationTime));
+                Recorded(operations, operationTime);
+            }
+
         }
 
         /// <summary>
@@ -52,7 +60,14 @@ namespace SubtitleEditor.UWP.History
         /// <param name="operation">要添加的操作</param>
         public void Push(Operation operation)
         {
-            this.Push(new OperationStack(operation.Position.ToString()), DateTime.Now);
+            if(operation != null)
+            {
+                var stack = new OperationStack(operation.Position.ToString());
+                var recordTime = DateTime.Now;
+                Recording?.Invoke(stack, recordTime);
+                this.Push(stack, recordTime);
+                Recorded(stack, recordTime);
+            }
         }
 
         /// <summary>
@@ -61,7 +76,7 @@ namespace SubtitleEditor.UWP.History
         /// <returns></returns>
         public OperationStack Undo()
         {
-            var stack = Pop();
+            var stack = UndoStack.Pop();
 
             Undoing?.Invoke(stack.Item1, stack.Item2);
 
@@ -75,9 +90,11 @@ namespace SubtitleEditor.UWP.History
             return stack.Item1;
         }
 
-        public delegate void DoingEventHandler(OperationStack operations, DateTime recordTime);
-        public event DoingEventHandler Undoing;
-        public event DoingEventHandler Redoing;
+        public delegate void RecorderEventHandler(OperationStack operations, DateTime recordTime);
+        public event RecorderEventHandler Undoing;
+        public event RecorderEventHandler Redoing;
+        public event RecorderEventHandler Recording;
+        public event RecorderEventHandler Recorded;
     }
 
     internal delegate void ItemModifiedHandler<in T, in U>(string propertyName, T oldItem, U newItem, string descrption);
