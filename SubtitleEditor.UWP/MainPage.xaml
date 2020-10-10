@@ -118,7 +118,7 @@
                            Visibility="Visible"
                            >
             <controls:DataGrid.Columns>
-                <controls:DataGridTextColumn Header="序号" Binding="{Binding No}" x:DefaultBindMode="TwoWay"></controls:DataGridTextColumn>
+                <controls:DataGridTextColumn Header="序号" Binding="{Binding No}" x:DefaultBindMode="TwoWay" IsReadOnly="True"></controls:DataGridTextColumn>
                 <controls:DataGridTextColumn Header="开始时间" x:DefaultBindMode="TwoWay" Binding="{Binding From, Converter={StaticResource StringFormatterValueConverter}}"></controls:DataGridTextColumn>
                 <controls:DataGridTextColumn Header="结束时间" Binding="{Binding To, Converter={StaticResource StringFormatterValueConverter}}"></controls:DataGridTextColumn>
                 <controls:DataGridTextColumn Header="持续时间" Binding="{Binding Span, Converter={StaticResource StringFormatterValueConverter}}"></controls:DataGridTextColumn>
