@@ -37,8 +37,36 @@ namespace SubtitleEditor.UWP.ViewModels
 
         private bool _isLoaded = false;
         public int No { set; get; }
-        public TimeSpan From { set; get; }
-        public TimeSpan To { set; get; }
+
+        private TimeSpan _from;
+        public TimeSpan From
+        {
+            set
+            {
+                var oldValue = _from;
+                _from = value;
+                OnPropertyChanged(oldValue, value);
+            }
+            get
+            {
+                return _from;
+            }
+        }
+
+        private TimeSpan _to;
+        public TimeSpan To
+        {
+            set
+            {
+                var oldValue = _to;
+                _to = value;
+                OnPropertyChanged(oldValue, value);
+            }
+            get
+            {
+                return _to;
+            }
+        }
 
         private string _line;
         public string Line
