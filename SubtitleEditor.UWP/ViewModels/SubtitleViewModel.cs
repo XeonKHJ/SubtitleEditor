@@ -23,6 +23,44 @@ namespace SubtitleEditor.UWP.ViewModels
             //CollectionChanged += DialoguesViewModel_CollectionChanged;
         }
 
+
+        /// <summary>
+        /// 将字幕加载进该视图模型
+        /// </summary>
+        /// <param name="subtitle">字幕实例</param>
+        public void LoadSubtitle(Subtitle subtitle)
+        {
+            //清楚视图模型中的字幕集合。
+            Items.Clear();
+
+            if (subtitle != null)
+            {
+                _subtitle = subtitle;
+
+                //为字幕注册添加对话事件。
+                _subtitle.DialogueAdded += Subtitle_DialogueAdded;
+
+                //为视图模型重新添加新字幕中的对话。
+                foreach (var d in subtitle.Dialogues)
+                {
+                    var dialogueViewModel = new DialogueViewModel(d);
+                    RegisterEventsForDialogueViewModel(dialogueViewModel);
+                    Items.Add(dialogueViewModel);
+                }
+
+                //AddNewBlankDialogueViewModel();
+
+                OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
+
+                OperationRecorder = new OperationRecorder();
+                RegisterEventsForOperationRecorder(OperationRecorder);
+            }
+            else
+            {
+                throw new ArgumentNullException(nameof(subtitle));
+            }
+        }
+
         /// <summary>
         /// 因为我们在GridView里显示，因此当单条字幕经过修改时，需要通知界面（不能通过默认通知因为绑定的数据不是里面的对话，而是对话合集的字幕）。
         /// </summary>
@@ -87,43 +125,6 @@ namespace SubtitleEditor.UWP.ViewModels
                 //添加到历史
                 Operation operation = new Operation("Items", this, OperationType.Add, null, dialogueViewModel);
                 OperationRecorder.Record(operation);
-            }
-        }
-
-        /// <summary>
-        /// 将字幕加载进该视图模型
-        /// </summary>
-        /// <param name="subtitle">字幕实例</param>
-        public void LoadSubtitle(Subtitle subtitle)
-        {
-            //清楚视图模型中的字幕集合。
-            Items.Clear();
-
-            if (subtitle != null)
-            {
-                _subtitle = subtitle;
-
-                //为字幕注册添加对话事件。
-                _subtitle.DialogueAdded += Subtitle_DialogueAdded;
-
-                //为视图模型重新添加新字幕中的对话。
-                foreach (var d in subtitle.Dialogues)
-                {
-                    var dialogueViewModel = new DialogueViewModel(d);
-                    RegisterEventsForDialogueViewModel(dialogueViewModel);
-                    Items.Add(dialogueViewModel);
-                }
-
-                //AddNewBlankDialogueViewModel();
-
-                OnCollectionChanged(new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
-
-                OperationRecorder = new OperationRecorder();
-                RegisterEventsForOperationRecorder(OperationRecorder);
-            }
-            else
-            {
-                throw new ArgumentNullException(nameof(subtitle));
             }
         }
 

@@ -34,7 +34,6 @@ namespace SubtitleEditor.Subtitles
             DialogueDeleted?.Invoke(this, dialogue);
         }
 
-
         public event EventHandler<Dialogue> DialogueAdded;
         public event EventHandler<Dialogue> DialogueDeleted;
     }
