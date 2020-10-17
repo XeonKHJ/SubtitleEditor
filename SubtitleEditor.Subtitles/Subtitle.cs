@@ -31,6 +31,7 @@ namespace SubtitleEditor.Subtitles
         {
             var dialogue = _dialogues[index];
             _dialogues.RemoveAt(index);
+
             DialogueDeleted?.Invoke(this, dialogue);
         }
 

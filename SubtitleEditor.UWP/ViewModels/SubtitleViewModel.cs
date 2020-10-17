@@ -35,10 +35,9 @@ namespace SubtitleEditor.UWP.ViewModels
 
             if (subtitle != null)
             {
-                _subtitle = subtitle;
+                RegisterEventsForSubtitle(subtitle);
 
-                //为字幕注册添加对话事件。
-                _subtitle.DialogueAdded += Subtitle_DialogueAdded;
+                _subtitle = subtitle;
 
                 //为视图模型重新添加新字幕中的对话。
                 foreach (var d in subtitle.Dialogues)
@@ -59,6 +58,19 @@ namespace SubtitleEditor.UWP.ViewModels
             {
                 throw new ArgumentNullException(nameof(subtitle));
             }
+        }
+
+        private void RegisterEventsForSubtitle(Subtitle subtitle)
+        {
+            subtitle.DialogueAdded += Subtitle_DialogueAdded;
+            subtitle.DialogueDeleted += Subtitle_DialogueDeleted;
+        }
+
+        private void Subtitle_DialogueAdded(object sender, Dialogue e)
+        {
+            DialogueViewModel dialogueViewModel = new DialogueViewModel(e);
+            RegisterEventsForDialogueViewModel(dialogueViewModel);
+            this.Add(dialogueViewModel);
         }
 
         /// <summary>
@@ -98,18 +110,18 @@ namespace SubtitleEditor.UWP.ViewModels
             //创建对话逻辑模型。
             Dialogue dialogue = new Dialogue(this.Count + 1, beginTime, beginTime, line);
 
-            //通过对话逻辑模型创建视图模型。
-            DialogueViewModel dialogueViewModel = new DialogueViewModel(dialogue);
-            RegisterEventsForDialogueViewModel(dialogueViewModel);
+            ////通过对话逻辑模型创建视图模型。
+            //DialogueViewModel dialogueViewModel = new DialogueViewModel(dialogue);
+            //RegisterEventsForDialogueViewModel(dialogueViewModel);
 
-            //添加到字幕视图模型
-            this.Add(dialogueViewModel);
+            ////添加到字幕视图模型
+            //this.Add(dialogueViewModel);
 
             //添加到字幕逻辑模型
             _subtitle.AddDialogue(dialogue);
 
             //添加到历史
-            Operation operation = new Operation("Items", this, OperationType.Add, null, dialogueViewModel);
+            Operation operation = new Operation("Items", _subtitle, OperationType.Add, null, dialogue);
             OperationRecorder.Record(operation);
         }
 
@@ -120,10 +132,8 @@ namespace SubtitleEditor.UWP.ViewModels
                 Dialogue dialogue = dialogueViewModel.ToDialogue();
                 _subtitle.AddDialogue(dialogue);
 
-                this.Add(dialogueViewModel);
-
                 //添加到历史
-                Operation operation = new Operation("Items", this, OperationType.Add, null, dialogueViewModel);
+                Operation operation = new Operation("Items", _subtitle, OperationType.Add, null, dialogue);
                 OperationRecorder.Record(operation);
             }
         }
@@ -144,30 +154,29 @@ namespace SubtitleEditor.UWP.ViewModels
             OperationRecorder.Record(operation);
         }
 
+        private void RemoveDialogue(DialogueViewModel viewModel)
+        {
+            var dialogueToDelete = _subtitle.Dialogues[viewModel.No - 1];
+            _subtitle.DeleteDialogueByIndex(viewModel.No - 1);
+
+            Operation operation = new Operation("Items", this, OperationType.Delete, dialogueToDelete, null);
+            OperationRecorder.Record(operation);
+        }
+
         /// <summary>
-        /// 当用户添加字幕时，字幕是添加到Subtitle中的，然后通过出发事件来添加到视图模型中。
+        /// 对话删除时触发事件
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void Subtitle_DialogueAdded(object sender, Dialogue e)
+        private void Subtitle_DialogueDeleted(object sender, Dialogue e)
         {
-
-        }
-
-
-        private void RemoveDialogue(DialogueViewModel viewModel)
-        {
-            this.RemoveAt(viewModel.No - 1);
-            _subtitle.DeleteDialogueByIndex(viewModel.No - 1);
+            this.RemoveAt(e.No - 1);
 
             //所有后面的对话的
-            for (int i = viewModel.No - 1; i < Count; ++i)
+            for (int i = e.No - 1; i < Count; ++i)
             {
                 Items[i].No = i;
             }
-
-            Operation operation = new Operation("Items", this, OperationType.Delete, viewModel, null);
-            OperationRecorder.Record(operation);
         }
 
 
@@ -176,12 +185,11 @@ namespace SubtitleEditor.UWP.ViewModels
         /// 为操作记录器注册事件。
         /// </summary>
         /// <param name="recorder"></param>
-        private void RegisterEventsForOperationRecorder(OperationRecorder recorder)
+        private static void RegisterEventsForOperationRecorder(OperationRecorder recorder)
         {
             recorder.Undoing += Recorder_Undoing;
             recorder.Redoing += Recorder_Redoing;
         }
-
 
         /// <summary>
         /// 定义撤销操作。
@@ -221,9 +229,9 @@ namespace SubtitleEditor.UWP.ViewModels
                                 break;
                         }
                     }
-                    else if (operation.ChangeeObject is SubtitleViewModel)
+                    else if (operation.ChangeeObject is Subtitle)
                     {
-                        var subtitleViewModel = operation.ChangeeObject as SubtitleViewModel;
+                        var subtitleViewModel = operation.ChangeeObject as Subtitle;
                         switch (operation.Type)
                         {
                             case OperationType.Add:
@@ -231,7 +239,7 @@ namespace SubtitleEditor.UWP.ViewModels
                                     switch (operation.PropertyName)
                                     {
                                         case "Items":
-                                            subtitleViewModel.AddDialogue(operation.NewValue as DialogueViewModel);
+                                            subtitleViewModel.AddDialogue(operation.NewValue as Dialogue);
                                             break;
                                     }
                                 }
@@ -260,7 +268,7 @@ namespace SubtitleEditor.UWP.ViewModels
 
                     if (operation.ChangeeObject is DialogueViewModel)
                     {
-                        var dialogueViewModel = operation.ChangeeObject as DialogueViewModel;
+                        var dialogue = operation.ChangeeObject as DialogueViewModel;
                         switch (operation.Type)
                         {
                             case OperationType.Modify:
@@ -268,22 +276,22 @@ namespace SubtitleEditor.UWP.ViewModels
                                     switch (operation.PropertyName)
                                     {
                                         case "Line":
-                                            dialogueViewModel.Line = (string)operation.OldValue;
+                                            dialogue.Line = (string)operation.OldValue;
                                             break;
                                         case "From":
-                                            dialogueViewModel.From = (TimeSpan)operation.OldValue;
+                                            dialogue.From = (TimeSpan)operation.OldValue;
                                             break;
                                         case "To":
-                                            dialogueViewModel.To = (TimeSpan)operation.OldValue;
+                                            dialogue.To = (TimeSpan)operation.OldValue;
                                             break;
                                     }
                                 }
                                 break;
                         }
                     }
-                    else if (operation.ChangeeObject is SubtitleViewModel)
+                    else if (operation.ChangeeObject is Subtitle)
                     {
-                        var subtitleViewModel = operation.ChangeeObject as SubtitleViewModel;
+                        var subtitleViewModel = operation.ChangeeObject as Subtitle;
                         switch (operation.Type)
                         {
                             case OperationType.Add:
@@ -291,7 +299,7 @@ namespace SubtitleEditor.UWP.ViewModels
                                     switch (operation.PropertyName)
                                     {
                                         case "Items":
-                                            subtitleViewModel.RemoveDialogue(operation.NewValue as DialogueViewModel);
+                                            subtitleViewModel.DeleteDialogue(operation.NewValue as Dialogue);
                                             break;
                                     }
                                 }

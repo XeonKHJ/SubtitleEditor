@@ -6,6 +6,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Globalization;
 using SubtitlesParser.Classes.Parsers;
+using System.ComponentModel;
 
 namespace SubtitleEditor.Subtitles
 {
@@ -119,20 +120,30 @@ namespace SubtitleEditor.Subtitles
         public string SaveToString(Subtitle subtitle)
         {
             string subtitleString = "";
-            foreach (var dialogue in subtitle.Dialogues)
-            {
-                string from = dialogue.From.ToString(@"hh\:mm\:ss\,fff", CultureInfo.CurrentCulture);
-                string to = dialogue.To.ToString(@"hh\:mm\:ss\,fff", CultureInfo.CurrentCulture);
-                string arrowWithTwoSpace = " --> ";
-                string no = dialogue.No.ToString(CultureInfo.CurrentCulture);
-                string line = dialogue.Line;
 
-                string dialogueString = no + Environment.NewLine +
-                                        to + arrowWithTwoSpace + from + Environment.NewLine +
-                                        line + Environment.NewLine + 
-                                        Environment.NewLine;
-                subtitleString += dialogueString;
+            if(subtitle != null)
+            {
+                for (int i = 0; i < subtitle.Dialogues.Count; ++i)
+                {
+                    var dialogue = subtitle.Dialogues[i];
+                    string from = dialogue.From.ToString(@"hh\:mm\:ss\,fff", CultureInfo.CurrentCulture);
+                    string to = dialogue.To.ToString(@"hh\:mm\:ss\,fff", CultureInfo.CurrentCulture);
+                    string arrowWithTwoSpace = " --> ";
+                    string no = (i + 1).ToString(CultureInfo.CurrentCulture);
+                    string line = dialogue.Line;
+
+                    string dialogueString = no + Environment.NewLine +
+                                            to + arrowWithTwoSpace + from + Environment.NewLine +
+                                            line + Environment.NewLine +
+                                            Environment.NewLine;
+                    subtitleString += dialogueString;
+                }
             }
+            else
+            {
+                throw new ArgumentNullException(nameof(subtitle));
+            }
+
 
             return subtitleString;
         }
